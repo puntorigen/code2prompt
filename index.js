@@ -95,12 +95,16 @@ Source Tree:
   }
 }
 
-// Example usage
-const options = {
-  path: ".",
-  extensions: ["js", "hbs"], // Specify the extensions to filter for
-  template: 'templates/default.hbs',
-  ignore: ["**/node_modules/**"], // Specify patterns to ignore
-};
-const code2Prompt = new Code2Prompt(options);
-code2Prompt.generatePrompt().then(res=>console.log('result',res)).catch(console.error);
+!async function(){
+    // Example usage
+    const options = {
+        path: ".",
+        extensions: ["js", "hbs"], // Specify the extensions to filter for
+        template: 'templates/default.hbs',
+        ignore: ["**/node_modules/**"], // Specify patterns to ignore
+    };
+    const code2Prompt = new Code2Prompt(options);
+    const prompt = await code2Prompt.generatePrompt();
+    // add your prompt after 'prompt' or a template
+    console.log(prompt);
+}();
