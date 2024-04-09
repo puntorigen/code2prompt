@@ -1,16 +1,21 @@
 {
   "name": "code2prompt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "DEBUG=zod-gpt:* node test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/puntorigen/code2prompt.git"
   },
-  "keywords": ["code2prompt","codeparser","llm","prompt engineering"],
+  "keywords": [
+    "code2prompt",
+    "codeparser",
+    "llm",
+    "prompt engineering"
+  ],
   "author": "Pablo Schaffner",
   "license": "MIT",
   "bugs": {
@@ -18,8 +23,15 @@
   },
   "homepage": "https://github.com/puntorigen/code2prompt#readme",
   "dependencies": {
+    "codedown": "^3.1.0",
+    "dotenv": "^16.4.5",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.8",
+    "llm-api": "^1.5.1",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.22.4",
+    "zod-gpt": "^0.15.1",
+    "zod-to-json-schema": "^3.22.5"
   }
 }
