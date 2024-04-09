@@ -135,10 +135,13 @@ Source Tree:
   }
   
 
-  async request(prompt='') {
+  async request(prompt='',schema=null) {
     await this.setupFetchPolyfill();
     const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
+    if (schema) {
+        this.schema = z.object({ schema });
+    }
     // calls the LLM with the context and enforced schema, with optional instruction prompt
     const context = await this.generateContextPrompt();
     if (this.OPENAI_KEY) {

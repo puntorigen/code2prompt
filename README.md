@@ -36,10 +36,19 @@ const Code2Prompt = require('code2prompt');
         //template: 'templates/default.hbs',
         template: 'templates/write-readme.hbs',
         ignore: ["**/node_modules/**"], // Specify patterns to ignore
+        OPENAI_KEY: 'YOUR_OPENAI API KEY' // needed for calling 'request', if not it's optional
     };
     const code2Prompt = new Code2Prompt(options);
-    const prompt = await code2Prompt.generatePrompt();
+    const prompt = await code2Prompt.generateContextPrompt();
     console.log(prompt);
+    // make request to openAI
+    const generateReadme = await code2Prompt.request("Generate a readme file from the given codebase",z.object({
+        readme: z.string().describe('The generated contents of the readme file'),
+    }));
+    // generatedReadme = { data: { readme: 'Generated readme.md content' }, usage:{ totalTokens, promptTokens, completionTokens } }
+    console.log('Generated readme.md',generateReadme.data.readme);
+    // some templates (like write-readme) contain a 'schema' md code block with the return schema for the prompt, so you can call it as is and it'll work
+    const generateReadme2 = await code2Prompt.request();
 }();
 ```
 
