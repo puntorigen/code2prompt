@@ -10,8 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/puntorigen/code2prompt.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["code2prompt","codeparser","llm","prompt engineering"],
+  "author": "Pablo Schaffner",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/puntorigen/code2prompt/issues"
