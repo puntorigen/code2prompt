@@ -1,0 +1,25 @@
+{
+  "name": "code2prompt",
+  "version": "1.0.0",
+  "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/puntorigen/code2prompt.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/puntorigen/code2prompt/issues"
+  },
+  "homepage": "https://github.com/puntorigen/code2prompt#readme",
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.12",
+    "handlebars": "^4.7.8"
+  }
+}
