@@ -6,7 +6,6 @@ const globLib = require("glob");
 const codedown = require('codedown');
 const globPromise = globLib.glob;
 const { z } = require('zod');
-const { zodToJsonSchema } = require('zod-to-json-schema');
 
 class Code2Prompt {
   constructor(options) {
@@ -58,8 +57,6 @@ Source Tree:
         const json_parsed = JSON.parse(schema);
         const zod_schema = z.object({ schema:this.createZodSchema(json_parsed) });
         if (!this.schema) this.schema = zod_schema;
-        const debug_ = zodToJsonSchema(this.schema, "mySchema");
-        console.log('return ZOD schema:',JSON.stringify(debug_));
       }
     }    
 
@@ -145,7 +142,7 @@ Source Tree:
     // calls the LLM with the context and enforced schema, with optional instruction prompt
     const context = await this.generateContextPrompt();
     if (this.OPENAI_KEY) {
-        const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY }, { model: 'gpt-4-0125-preview', minimumResponseTokens: 8192 });
+        const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (prompt) {

@@ -1,6 +1,6 @@
 {
   "name": "code2prompt",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,6 @@
     "llm-api": "^1.5.1",
     "node-fetch": "^3.3.2",
     "zod": "^3.22.4",
-    "zod-gpt": "^0.15.1",
-    "zod-to-json-schema": "^3.22.5"
+    "zod-gpt": "^0.15.1"
   }
 }
