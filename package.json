@@ -4,7 +4,8 @@
   "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
   "main": "index.js",
   "scripts": {
-    "test": "DEBUG=zod-gpt:* node test.js"
+    "test": "DEBUG=zod-gpt:* node test.js",
+    "test2": "DEBUG=zod-gpt:* node test2.js"
   },
   "repository": {
     "type": "git",

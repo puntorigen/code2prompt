@@ -1,78 +1,79 @@
 # Code2Prompt
 
-Code2Prompt is a node.js library that assists in generating contextual prompts from codebases for language model applications. It leverages the power of OpenAI API to fetch results for the generated prompts.
+This project, Code2Prompt, is a versatile codebase analysis tool designed to create prompts and generate Readme files. The tool traverses a given codebase, focusing mostly on JavaScript files, creating a context prompt out of it. The unique feature of Code2Prompt is its ability to communicate with the OpenAI API, providing the ability for automated creation of high-quality documentation using AI.
 
 ## Features
 
-1. **Codebase Analysis:** Code2Prompt traverses through your entire codebase, analyzing and summarizing it to contextual prompts.
-2. **Customizable:** It allows you to specify which file types to include or ignore during the analysis.
-3. **OpenAI API Integration:** If provided with an OpenAI API key, it can directly fetch results from the API for the generated prompts. 
-4. **Template-based Rendering:** It utilizes Handlebars for template-based rendering of the generated prompts.
-5. **Schema Enforcement:** It uses Zod to build and enforce a data schema.
+1. Thorough codebase analysis: Traverse the given codebase, focusing on specific file extensions, principally JavaScript. It includes the ability to ignore certain patterns.
+2. Context Prompt generation: Convert the analyzed code into a context prompt ready for asking questions to an AI model.
+3. Readme Generation: Leverage the power of AI to create high-quality documentation, such as Readme files, from the generated context prompts.
+4. Templates: Use predefined or custom templates for generating prompts and documentation.
+5. Enforced Schema: Include a predefined or custom schema for ensuring the consistency and quality of AI responses.
+6. Integrates with OpenAI API: The ability to communicate with and use an OpenAI model for advanced response generations.
 
 ## Installation
 
-You can install the library via npm:
+To install Code2Prompt, clone the repository and install the needed dependencies with the following steps:
 
 ```bash
-npm install code2prompt
+    git clone https://github.com/<username>/code2prompt.git
+    cd code2prompt
+    npm install
 ```
 
-## Usage
+## Usage Examples
 
-Here's a basic example of how to use Code2Prompt:
+To generate a context prompt or ask the OpenAI model a question, follow the steps below:
 
 ```javascript
-const Code2Prompt = require('code2prompt');
-
-const options = {
-    path: '.', // Specify the path to the codebase
-    extensions: ['js'], // Specify the extensions to filter for
-    template: 'templates/default.hbs', // Specify the template to use
-    ignore: ['**/node_modules/**'], // Specify patterns to ignore 
-    OPENAI_KEY: process.env.OPENAI_KEY // Optional OpenAI API key; needed for 'request' method
-};
-
-const code2Prompt = new Code2Prompt(options);
-
-// Generate a context prompt
-code2Prompt.generateContextPrompt().then(prompt => console.log(prompt));
+    const Code2Prompt = require('./index');
+    const { z } = require('zod');
+    require('dotenv').config();
+    
+    const options = {
+        path: '.',
+        extensions: ["js"],
+        template: 'templates/default.hbs',
+        ignore: ["**/node_modules/**"],
+        OPENAI_KEY: process.env.OPENAI_KEY 
+    };
+    const code2Prompt = new Code2Prompt(options);
+    // To generate a context prompt.
+    const prompt = await code2Prompt.generateContextPrompt();
+    // To ask a question with optional schema enforcement
+    const response = await code2Prompt.request("Question?", z.object({...}));
+    console.log(response.data);
 ```
-</br>
-Here's an example using 'request' method :
 
-```javascript
-code2Prompt.request('Generate a detailed readme markdown file from the given codebase.').then(response => console.log(response));
+## Configuration Options
 
-```
-> Note: The 'request' method requires an OpenAI API key.
+The constructor function for Code2Prompt takes a options object as an argument. The following properties can be defined in this object:
 
-## Available Options
+* path: The path to begin traversing the codebase.
+* extensions: An array of file extensions to focus on during traversal.
+* template: A handlebars.js template to use for converting the codebase into a context prompt.
+* ignore: An array of Glob patterns to ignore during traversal.
+* OPENAI_KEY: An optional OpenAI API key for communicating with the OpenAI API when using the 'request' method.
+* schema: An optional predefined Zod schema for enforcing the structure of AI responses.
 
-1. `path`: (String) Specifies the path to the codebase to analyze 
-2. `extensions`: (Array) Specifies the file extensions to include in the analysis. If not specified, all file types will be included. 
-3. `template`: (String) Specifies the path to the handlebars template for rendering the generated prompts.
-4. `ignore`: (Array) Specifies the file or directory patterns to ignore during the analysis. 
-5. `OPENAI_KEY`: (String) If specified, this will be used to fetch results for the generated prompts from the OpenAPI API.
+## Contribution Guidelines
 
-## Contributing
-
-Contributions are welcome! Feel free to submit issues or pull requests.
+The project is open for contributions. However, all contributors should follow the standard coding conventions of the project, ensure the passing of all tests, and update the tests as needed.
 
 ## Testing
 
-To run tests, call the following command:
+To test the project after making changes:
 
 ```bash
-node test.js
+    npm run test
 ```
 
 ## License
 
-This project is [MIT](https://choosealicense.com/licenses/mit/) licensed.
+Read the LICENSE file in the project root for full license information.
 
-## Acknowledgements 
+## Acknowledgements
 
-Thanks to [OpenAI](https://openai.com/) and [Handlebars.js](https://handlebarsjs.com/) which this project is built upon.
+This readme file was auto-generated by the Code2Prompt tool itself.
 
-## (this file was generated by running npm run test)
+
