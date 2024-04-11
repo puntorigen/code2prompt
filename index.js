@@ -1,10 +1,8 @@
 const fs = require("fs-extra");
 const path = require("path");
 const handlebars = require("handlebars");
-const { promisify } = require("util");
-const globLib = require("glob");
-const codedown = require('codedown');
-const globPromise = globLib.glob;
+const { glob } = require("glob");
+const codeBlocks = require('code-blocks')
 const { z } = require('zod');
 
 class Code2Prompt {
@@ -14,12 +12,15 @@ class Code2Prompt {
     this.ignorePatterns = options.ignore ? [].concat(options.ignore) : [];
     // if specified, enforces a return schema (use zod)
     this.schema = options.schema ? (options.schema) : null;
+    this.code_blocks = [];
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
+    this.loadAndRegisterTemplate(this.options.template);
   }
 
   async loadAndRegisterTemplate(templatePath) {
     let templateContent;
+    this.code_blocks = [];
     if (templatePath) {
       templateContent = await fs.readFile(templatePath, 'utf-8');
     } else {
@@ -45,18 +46,30 @@ Source Tree:
     this.template = handlebars.compile(templateContent);
     // extract return schema from template
     if (this.template) {
-      const schema = codedown(templateContent,"schema");
-      if (schema) {
-        // remove return schema statement from template
-        const original = '```schema\n' + schema + '\n```'; 
-        templateContent = templateContent.replace(original,"");
+      //const schema = codedown(templateContent,"schema");
+      const code_blocks = await codeBlocks.fromString(templateContent)
+      if (code_blocks.length > 0) {
+        // extract 'lang' defined code blocks into 'this.code_blocks' and remove them from template
+        // if lang is 'schema' assign to schema
+        for (let i=0; i<code_blocks.length; i++) {
+            const block = code_blocks[i];
+            // remove code block statement from template
+            if (block.lang) {
+                const original = '```'+block.lang+'\n' + block.value + '\n```'; 
+                templateContent = templateContent.replace(original,"");
+            }
+            //
+            if (block.lang === 'schema') {
+                // build zod schema from template schema
+                const json_parsed = JSON.parse(block.value);
+                const zod_schema = z.object({ schema:this.createZodSchema(json_parsed) });
+                if (!this.schema) this.schema = zod_schema;
+            } else if (block.lang) {
+                this.code_blocks.push({ lang:block.lang, code:block.value });
+            }
+        }
         this.template = handlebars.compile(templateContent);
-        // debug
-        //console.log('return schema:',schema);
-        // build zod schema from template schema
-        const json_parsed = JSON.parse(schema);
-        const zod_schema = z.object({ schema:this.createZodSchema(json_parsed) });
-        if (!this.schema) this.schema = zod_schema;
+        //console.log('code_blocks:',this.code_blocks);
       }
     }    
 
@@ -64,7 +77,7 @@ Source Tree:
 
   async traverseDirectory(dirPath) {
     const absolutePath = path.resolve(dirPath);
-    const files = await globPromise("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: this.ignorePatterns });
+    const files = await glob("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: this.ignorePatterns });
     let tree = {};
     let filesArray = [];
 
@@ -105,8 +118,8 @@ Source Tree:
     return result;
   }
 
-  async generateContextPrompt() {
-    await this.loadAndRegisterTemplate(this.options.template);
+  async generateContextPrompt(object=false) {
+    //await this.loadAndRegisterTemplate(this.options.template);
     const { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);
     const rendered = this.template({
       absolute_code_path: absolutePath,
@@ -114,6 +127,16 @@ Source Tree:
       files: filesArray,
     });
     //console.log(rendered);
+    if (object) {
+        return {
+            context: {
+                absolutePath,
+                sourceTree,
+                filesArray,
+            },
+            rendered: rendered
+        };
+    }
     return rendered;
   }
 
@@ -130,9 +153,8 @@ Source Tree:
       globalThis.Headers = fetch.Headers;
     }
   }
-  
 
-  async request(prompt='',schema=null) {
+  async request(prompt='',schema=null,meta=false) {
     await this.setupFetchPolyfill();
     const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
@@ -140,7 +162,8 @@ Source Tree:
         this.schema = z.object({ schema });
     }
     // calls the LLM with the context and enforced schema, with optional instruction prompt
-    const context = await this.generateContextPrompt();
+    const context_ = await this.generateContextPrompt(true);
+    const context = context_.rendered;
     if (this.OPENAI_KEY) {
         const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
         let response = {};
@@ -155,6 +178,10 @@ Source Tree:
             return_.usage = response.usage;
         } else if (response && response.data) {
             return_.usage = response.data;
+        }
+        if (meta) {
+            return_.context = context_.context;
+            return_.code_blocks = this.code_blocks;
         }
         return return_;
     }

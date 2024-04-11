@@ -1,11 +1,11 @@
 {
   "name": "code2prompt",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
   "main": "index.js",
   "scripts": {
     "test": "DEBUG=zod-gpt:* node test.js",
-    "test2": "DEBUG=zod-gpt:* node test2.js"
+    "test2": "node test2.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/puntorigen/code2prompt#readme",
   "dependencies": {
-    "codedown": "^3.1.0",
+    "code-blocks": "^1.1.0",
     "dotenv": "^16.4.5",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12",
