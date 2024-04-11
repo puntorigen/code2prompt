@@ -38,3 +38,17 @@ Feel free to infer reasonable details if needed, but try to stick to what can be
     "readme": "content of the README file"
 }
 ```
+
+```js
+// these code blocks are returned to 'request' if meta arg is true, in order, and removed from the template
+// think this is good so if other libraries want to perform further processing on the results, they can define them within the templates
+// could be code to run after getting the resulting schema to fine tune the template execution or preprocess stuff defined on the template (ex prepare project directory, etc)
+// context vars: results (schema), absolute_code_path, files, source_tree, etc (all the template vars)
+const fs = require('fs').promises;
+// save 'readme' results.readme contents to disk (abs)
+await fs.writeFile(`${absolute_code_path}/README.md`, results.readme, 'utf8');
+```
+
+```bash
+# commands to run after the previous nodejs code block
+```

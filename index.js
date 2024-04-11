@@ -140,6 +140,10 @@ Source Tree:
     return rendered;
   }
 
+  getCodeBlocks() {
+    return this.code_blocks;
+  }
+  
   //
   // calling prompt helper methods
   //
