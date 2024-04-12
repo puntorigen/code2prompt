@@ -118,8 +118,10 @@ Source Tree:
     return result;
   }
 
-  async generateContextPrompt(object=false) {
-    //await this.loadAndRegisterTemplate(this.options.template);
+  async generateContextPrompt(template=null,object=false) {
+    if (template) {
+        await this.loadAndRegisterTemplate(template);
+    }
     const { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);
     const rendered = this.template({
       absolute_code_path: absolutePath,
@@ -143,7 +145,7 @@ Source Tree:
   getCodeBlocks() {
     return this.code_blocks;
   }
-  
+
   //
   // calling prompt helper methods
   //
@@ -158,7 +160,31 @@ Source Tree:
     }
   }
 
-  async request(prompt='',schema=null,meta=false) {
+  async queryLLM(prompt='',schema=null) {
+    // query the LLM without context
+    await this.setupFetchPolyfill();
+    const { OpenAIChatApi } = require('llm-api');
+    const { completion } = require('zod-gpt');
+    if (this.OPENAI_KEY) {
+        const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4' });
+        let response = {};
+        let return_ = { data:{}, usage:{} };
+        if (schema) {
+            response = await completion(openai, prompt, { schema: z.object({ schema }) });
+        } else {
+            response = await completion(openai, prompt);
+        }
+        if (response && response.data && response.data.schema) {
+            return_.data = response.data.schema;
+            return_.usage = response.usage;
+        } else if (response && response.data) {
+            return_.data = response.data;
+        }
+        return return_;
+    }
+  }
+
+  async request(prompt='',schema=null,custom_context=null,meta=false) {
     await this.setupFetchPolyfill();
     const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
@@ -166,8 +192,15 @@ Source Tree:
         this.schema = z.object({ schema });
     }
     // calls the LLM with the context and enforced schema, with optional instruction prompt
-    const context_ = await this.generateContextPrompt(true);
-    const context = context_.rendered;
+    let context_ = null;
+    let context = custom_context;
+    if (!custom_context) {
+        context_ = await this.generateContextPrompt(null,true);
+        context = context_.rendered;
+    } else {
+        context_ = { context:custom_context, rendered:'' };
+        context = '';
+    }
     if (this.OPENAI_KEY) {
         const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
         let response = {};
@@ -181,7 +214,7 @@ Source Tree:
             return_.data = response.data.schema;
             return_.usage = response.usage;
         } else if (response && response.data) {
-            return_.usage = response.data;
+            return_.data = response.data;
         }
         if (meta) {
             return_.context = context_.context;
