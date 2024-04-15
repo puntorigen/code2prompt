@@ -184,7 +184,7 @@ Source Tree:
     }
   }
 
-  async request(prompt='',schema=null,custom_context=null,meta=false) {
+  async request(prompt='',schema=null,custom_context=null,meta=false,model='gpt-4') {
     await this.setupFetchPolyfill();
     const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
@@ -202,7 +202,16 @@ Source Tree:
         context = '';
     }
     if (this.OPENAI_KEY) {
-        const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
+        let openai = null;
+        if (!model) {
+          openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
+          if (context.length>8192) {
+            //console.log('Context length exceeds 8192 characters, switching to bigger context model ..');
+            openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:context.length });
+          }
+        } else {
+          openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model, contextSize:context.length });
+        }
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (prompt) {
