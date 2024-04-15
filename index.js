@@ -59,7 +59,7 @@ Source Tree:
                 templateContent = templateContent.replace(original,"");
             }
             //
-            if (block.lang === 'schema') {
+            if (block.lang === 'schema' || block.lang === 'json:schema') {
                 // build zod schema from template schema
                 const json_parsed = JSON.parse(block.value);
                 const zod_schema = z.object({ schema:this.createZodSchema(json_parsed) });

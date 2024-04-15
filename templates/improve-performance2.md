@@ -38,7 +38,7 @@ Document any new usage constraints (e.g. increased memory requirements).
 
 Try to prioritize the changes that will have the largest impact on typical usage scenarios based on your understanding of the codebase. Let me know if you have any questions!
 
-```schema
+```json:schema
 [
 {
     "file": "full path to file that needs to be optimized",

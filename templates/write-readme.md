@@ -33,7 +33,7 @@ Write the content in Markdown format. Use your analysis of the code to generate 
 
 Feel free to infer reasonable details if needed, but try to stick to what can be determined from the codebase itself. Let me know if you have any other questions as you're writing!
 
-```schema
+```json:schema
 {
     "readme": "content of the README file"
 }

@@ -8,7 +8,7 @@ require('dotenv').config();
         path: ".",
         extensions: ["js"], // Specify the extensions to filter for
         //template: 'templates/default.hbs',
-        template: 'templates/write-readme.hbs',
+        template: 'templates/write-readme.md',
         ignore: ["**/node_modules/**"], // Specify patterns to ignore
         OPENAI_KEY: process.env.OPENAI_KEY // Optional OpenAI API key; needed for 'request' method
     };
@@ -18,6 +18,7 @@ require('dotenv').config();
     //console.log(prompt);
     // calling test
     console.log('generating call ..');
+    //const test0 = await code2Prompt.run('template-name');
     const test = await code2Prompt.request("Generate a detailed readme markdown file from the given codebase. Add a 'request' method call example as well. Consider this project is consumed as a library.",
         z.object({
             readme: z.string().describe('The generated contents of the readme file'),
