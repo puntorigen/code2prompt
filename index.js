@@ -125,9 +125,9 @@ Source Tree:
     // TODO: optimize the following block
     let { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);    
     if (Object.keys(variables).length > 0) {
-      if (variables.absolutePath) absolutePath = variables.absolutePath;
-      if (variables.sourceTree) sourceTree = variables.sourceTree;
-      if (variables.filesArray) filesArray = variables.filesArray;
+      if (variables.absolute_code_path) absolutePath = variables.absolute_code_path;
+      if (variables.source_tree) sourceTree = variables.source_tree;
+      if (variables.files) filesArray = variables.files;
     }
     let rendered = this.template({
       absolute_code_path: absolutePath,
