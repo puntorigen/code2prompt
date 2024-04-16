@@ -118,12 +118,18 @@ Source Tree:
     return result;
   }
 
-  async generateContextPrompt(template=null,object=false) {
+  async generateContextPrompt(template=null,object=false,variables={}) {
     if (template) {
         await this.loadAndRegisterTemplate(template);
     }
-    const { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);
-    const rendered = this.template({
+    // TODO: optimize the following block
+    let { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);    
+    if (Object.keys(variables).length > 0) {
+      if (variables.absolutePath) absolutePath = variables.absolutePath;
+      if (variables.sourceTree) sourceTree = variables.sourceTree;
+      if (variables.filesArray) filesArray = variables.filesArray;
+    }
+    let rendered = this.template({
       absolute_code_path: absolutePath,
       source_tree: sourceTree,
       files: filesArray,
@@ -184,7 +190,12 @@ Source Tree:
     }
   }
 
-  async request(prompt='',schema=null,custom_context=null,meta=false,model='gpt-4') {
+  async request(prompt='',schema=null,options={
+    custom_context:null,
+    meta:false,
+    model:'gpt-4',
+    custom_variables:{}
+  }) {
     await this.setupFetchPolyfill();
     const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
@@ -193,24 +204,24 @@ Source Tree:
     }
     // calls the LLM with the context and enforced schema, with optional instruction prompt
     let context_ = null;
-    let context = custom_context;
-    if (!custom_context) {
-        context_ = await this.generateContextPrompt(null,true);
+    let context = options.custom_context;
+    if (!options.custom_context) {
+        context_ = await this.generateContextPrompt(null,true,options.custom_variables);
         context = context_.rendered;
     } else {
-        context_ = { context:custom_context, rendered:'' };
+        context_ = { context:options.custom_context, rendered:'' };
         context = '';
     }
     if (this.OPENAI_KEY) {
         let openai = null;
-        if (!model) {
+        if (!options.model) {
           openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
           if (context.length>8192) {
             //console.log('Context length exceeds 8192 characters, switching to bigger context model ..');
             openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:context.length });
           }
         } else {
-          openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model, contextSize:context.length });
+          openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model:options.model, contextSize:context.length });
         }
         let response = {};
         let return_ = { data:{}, usage:{} };
@@ -225,7 +236,7 @@ Source Tree:
         } else if (response && response.data) {
             return_.data = response.data;
         }
-        if (meta) {
+        if (options.meta) {
             return_.context = context_.context;
             return_.code_blocks = this.code_blocks;
         }
