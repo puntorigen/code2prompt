@@ -14,10 +14,15 @@ class Code2Prompt {
     this.ignorePatterns = options.ignore ? [].concat(options.ignore) : [];
     // if specified, enforces a return schema (use zod)
     this.schema = options.schema ? (options.schema) : null;
-    this.code_blocks = [];
+    this.code_blocks = {};
+    this.custom_viewers = []; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
     this.loadAndRegisterTemplate(this.options.template);
+  }
+
+  registerFileViewer(ext,method) {
+    this.custom_viewers[ext] = method;
   }
 
   async loadAndRegisterTemplate(templatePath) {
@@ -94,7 +99,12 @@ Source Tree:
           const part = parts[i];
           if (i === parts.length - 1) {
             current[part] = relativePath;
-            const content = await fs.readFile(file, 'utf-8');
+            let content = '';
+            if (extension in this.custom_viewers) {
+              content = await this.custom_viewers[extension](file);
+            } else {
+              content = await fs.readFile(file, 'utf-8');
+            }
             filesArray.push({ path: relativePath, code: content });
           } else {
             current[part] = current[part] || {};
