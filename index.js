@@ -4,6 +4,8 @@ const handlebars = require("handlebars");
 const { glob } = require("glob");
 const codeBlocks = require('code-blocks')
 const { z } = require('zod');
+const { get_encoding, encoding_for_model } = require('tiktoken');
+const gpt_tokenizer = encoding_for_model('gpt-4');
 
 class Code2Prompt {
   constructor(options) {
@@ -215,9 +217,10 @@ Source Tree:
     if (this.OPENAI_KEY) {
         let openai = null;
         if (!options.model) {
-          openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
-          if (context.length>8192) {
-            //console.log('Context length exceeds 8192 characters, switching to bigger context model ..');
+          const context_tokens = gpt_tokenizer.encode(context).length;
+          if (context_tokens<8100) {
+            openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
+          } else {
             openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:context.length });
           }
         } else {

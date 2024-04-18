@@ -1,6 +1,6 @@
 {
   "name": "code2prompt",
-  "version": "1.0.73",
+  "version": "1.0.74",
   "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
   "main": "index.js",
   "scripts": {
@@ -31,6 +31,7 @@
     "handlebars": "^4.7.8",
     "llm-api": "^1.5.1",
     "node-fetch": "^3.3.2",
+    "tiktoken": "^1.0.14",
     "zod": "^3.22.4",
     "zod-gpt": "^0.15.1"
   }
