@@ -138,7 +138,7 @@ Source Tree:
         files: filesArray
       };
     }
-    let rendered = this.template(variables);
+    let rendered = this.template(variables_);
     //console.log(rendered);
     if (object) {
         return {
