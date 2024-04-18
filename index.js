@@ -125,7 +125,7 @@ Source Tree:
         await this.loadAndRegisterTemplate(template);
     }
     // TODO: optimize the following block
-    let variables_ = {...{variables}}; // clone param
+    let variables_ = {...variables}; // clone param
     let { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);    
     if (Object.keys(variables_).length > 0) {
       if (!variables_.absolute_code_path) variables_.absolutePath=absolutePath;
