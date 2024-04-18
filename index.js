@@ -128,7 +128,7 @@ Source Tree:
     let variables_ = {...variables}; // clone param
     let { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);    
     if (Object.keys(variables_).length > 0) {
-      if (!variables_.absolute_code_path) variables_.absolutePath=absolutePath;
+      if (!variables_.absolute_code_path) variables_.absolute_code_path=absolutePath;
       if (!variables_.source_tree) variables_.source_tree=sourceTree;
       if (!variables_.files) variables_.files=filesArray;
     } else {
