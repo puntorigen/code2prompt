@@ -177,13 +177,24 @@ Source Tree:
     }
   }
 
+  getLLM(content) {
+    const { OpenAIChatApi } = require('llm-api');
+    let llm = null;
+    const context_tokens = gpt_tokenizer.encode(context).length;
+    if (context_tokens<8100) {
+      llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:8100 });
+    } else {
+      llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:16200 });
+    }
+    return llm;
+  }
+
   async queryLLM(prompt='',schema=null) {
     // query the LLM without context
     await this.setupFetchPolyfill();
-    const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
     if (this.OPENAI_KEY) {
-        const openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4' });
+        let openai = this.getLLM(context);
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (schema) {
@@ -204,11 +215,9 @@ Source Tree:
   async request(prompt='',schema=null,options={
     custom_context:null,
     meta:false,
-    model:null,
     custom_variables:{}
   }) {
     await this.setupFetchPolyfill();
-    const { OpenAIChatApi } = require('llm-api');
     const { completion } = require('zod-gpt');
     if (schema) {
         this.schema = z.object({ schema });
@@ -224,17 +233,7 @@ Source Tree:
         context = '';
     }
     if (this.OPENAI_KEY) {
-        let openai = null;
-        if (!options.model) {
-          const context_tokens = gpt_tokenizer.encode(context).length;
-          if (context_tokens<8100) {
-            openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:context.length });
-          } else {
-            openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:context.length });
-          }
-        } else {
-          openai = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model:options.model, contextSize:context.length });
-        }
+        const openai = this.getLLM(context);
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (prompt) {
@@ -265,6 +264,7 @@ Source Tree:
         if (input.length === 0) {
             return z.array(z.unknown());
         } else {
+            // TODO add support for string values as z.enum 
             return z.array(this.createZodSchema(input[0]));
         }
     } else if (typeof input === 'object' && input !== null) {
