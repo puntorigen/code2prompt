@@ -204,7 +204,7 @@ Source Tree:
   async request(prompt='',schema=null,options={
     custom_context:null,
     meta:false,
-    model:'gpt-4',
+    model:null,
     custom_variables:{}
   }) {
     await this.setupFetchPolyfill();
