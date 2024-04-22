@@ -15,6 +15,10 @@ class Code2Prompt {
     // if specified, enforces a return schema (use zod)
     this.schema = options.schema ? (options.schema) : null;
     this.code_blocks = {};
+    this.QArecordings = {};
+    this.last_QAsession = null;
+    this.full_source_tree = false; //false=source_tree equals to files shown on prompt, true=source_tree contains all files ignoring exclusions
+    this.binary = false; // false=skips binary files
     this.custom_viewers = []; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
@@ -23,6 +27,15 @@ class Code2Prompt {
 
   registerFileViewer(ext,method) {
     this.custom_viewers[ext] = method;
+  }
+
+  recordQA(session='') {
+    this.last_QAsession = session;
+    if (!this.QArecordings[session]) this.QArecordings[session]=[];
+  }
+
+  getQArecordings(session) {
+    return this.QArecordings[session];
   }
 
   async loadAndRegisterTemplate(templatePath) {
@@ -250,6 +263,13 @@ Source Tree:
         if (options.meta) {
             return_.context = context_.context;
             return_.code_blocks = this.code_blocks;
+        }
+        // add to this.QArecordings[this.last_QAsession]
+        if (this.last_QAsession) {
+          this.QArecordings[this.last_QAsession] = {
+            question:prompt,
+            answer:return_.data
+          }
         }
         return return_;
     }
