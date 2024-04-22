@@ -19,7 +19,7 @@ class Code2Prompt {
     this.last_QAsession = null;
     this.full_source_tree = false; //false=source_tree equals to files shown on prompt, true=source_tree contains all files ignoring exclusions
     this.binary = false; // false=skips binary files
-    this.custom_viewers = []; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
+    this.custom_viewers = {}; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
     this.loadAndRegisterTemplate(this.options.template);
