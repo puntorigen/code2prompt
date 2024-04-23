@@ -95,9 +95,31 @@ Source Tree:
 
   }
 
+  adjustIgnorePatterns(ignorePatterns, extensionsNotIgnored) {
+    // Ensure all extensions in extensionsNotIgnored start with a dot
+    const normalizedExtensions = extensionsNotIgnored.map(ext => ext.startsWith('.') ? ext : `.${ext}`);
+
+    return ignorePatterns.reduce((acc, pattern) => {
+        // Check if the pattern directly relates to a file extension
+        if (pattern.startsWith('**/*.')) {
+            // Extract the extension from the pattern
+            const extPattern = path.extname(pattern);
+            // Check if this extension is in the normalized list of extensions not to ignore
+            if (normalizedExtensions.includes(extPattern)) {
+                // If it is, do not add this pattern to the final list of ignore patterns
+                return acc;
+            }
+        }
+        // Otherwise, add the pattern to the final list
+        acc.push(pattern);
+        return acc;
+    }, []);
+  }
+
   async traverseDirectory(dirPath) {
     const absolutePath = path.resolve(dirPath);
-    const files = await glob("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: this.ignorePatterns });
+    const ignorePatternsWithoutViewers = adjustIgnorePatterns(this.ignorePatterns,Object.keys(this.custom_viewers));
+    const files = await glob("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers });
     let tree = {};
     let filesArray = [];
 
