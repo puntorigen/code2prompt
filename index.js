@@ -304,7 +304,9 @@ Source Tree:
 
   async queryLLM(prompt='',schema=null) {
     // query the LLM without context
-    await this.setupFetchPolyfill();
+    try {
+      await this.setupFetchPolyfill();
+    } catch(e) {}
     const { completion } = require('zod-gpt');
     if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
         let llm = this.getLLM(prompt);
