@@ -22,6 +22,7 @@ class Code2Prompt {
     this.custom_viewers = {}; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
+    this.GROQ_KEY = options.GROQ_KEY ? (options.GROQ_KEY) : null;
     this.loadAndRegisterTemplate(this.options.template);
   }
 
@@ -281,13 +282,22 @@ Source Tree:
   }
 
   getLLM(content) {
-    const { OpenAIChatApi } = require('llm-api');
+    const { OpenAIChatApi,GroqChatApi } = require('llm-api');
     let llm = null;
     const context_tokens = gpt_tokenizer.encode(content).length;
-    if (context_tokens<8100) {
-      llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:8100 });
-    } else {
-      llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:16200 });
+    if (this.OPENAI_KEY && this.OPENAI_KEY!=='') {
+      // USE defined OPENAI models
+      if (context_tokens<8100) {
+        llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:8100 });
+      } else {
+        llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:16200 });
+      }
+    } else if (this.GROQ_KEY && this.GROQ_KEY!=='') {
+      if (context_tokens<8100) {
+        llm = new GroqChatApi({ apiKey:this.GROQ_KEY, timeout:20000 }, { model: 'llama3-70b-8192', contextSize:8100 });
+      } else {
+        llm = new GroqChatApi({ apiKey:this.GROQ_KEY, timeout:20000 }, { model: 'mixtral-8x7b-32768', contextSize:32000 });
+      }
     }
     return llm;
   }
