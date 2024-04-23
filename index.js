@@ -38,6 +38,14 @@ class Code2Prompt {
     return this.QArecordings[session];
   }
 
+  async extractCodeBlocks(text) {
+    // extract code blocks from a given text (maybe from an LLM response)
+    return (await codeBlocks.fromString(text)).map((i)=>({
+      lang: i.lang,
+      code: i.value
+    }));
+  }
+
   async loadAndRegisterTemplate(templatePath) {
     let templateContent;
     this.code_blocks = [];
@@ -195,6 +203,8 @@ Source Tree:
       queryContext:async(question,schema)=>{
         return await this.request(question,schema); 
       },
+      extractCodeBlocks:this.extractCodeBlocks,
+      require
     };
     const methods_ = {...base_methods, ...methods, ...{
       executeScript: async(code)=>{
