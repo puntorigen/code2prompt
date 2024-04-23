@@ -297,7 +297,7 @@ Source Tree:
     await this.setupFetchPolyfill();
     const { completion } = require('zod-gpt');
     if (this.OPENAI_KEY) {
-        let openai = this.getLLM(context);
+        let openai = this.getLLM(prompt);
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (schema) {
