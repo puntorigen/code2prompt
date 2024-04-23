@@ -165,6 +165,51 @@ Source Tree:
     return result;
   }
 
+  async runTemplate(template=this.options.template, prompt='', methods={}, context={}) {
+    const templateContent = await fs.readFile(template, 'utf-8');
+    const code_helper = new (require('./codeBlocks'));
+    const base_methods = {
+      queryLLM:async(question,schema)=>{
+        return await this.queryLLM(question,schema); 
+      },
+      queryContext:async(question,schema)=>{
+        return await this.request(question,schema); 
+      },
+    };
+    const methods_ = {...base_methods, ...methods, ...{
+      executeScript: async(code)=>{
+        const code_executed = await code_helper.executeNode({...base_methods, ...methods, ...context},code);
+        return code_executed;
+      }
+    }};
+    const executeBlocks = async(pre=true,context_)=>{
+      for (const block of code_blocks) {
+        // test if block.lang ends with ':pre' or not
+        if (block.lang.endsWith(':pre')===pre) {
+            // if block.lang contains 'js'
+            if (block.lang.includes('js')) {
+                const code_executed = await code_helper.executeNode(context_,block.code);
+                // if code_executed is an object
+                if (typeof code_executed === 'object') {
+                    //console.log('adding context from pre:js code block',code_executed);
+                    context_ = {...context_,...code_executed};
+                }
+            }
+        }
+      }
+      return additional_context;
+    }
+    //search x:pre codeblocks and execute
+    let context_ = { methods:methods_, ...context};
+    context_ = await executeBlocks(true);
+    //execute prompt template if template contains a handlebar besides scripts
+    //TODO 22-abr-24
+    //search x codeblocks and execute
+    context_ = await executeBlocks(false);
+
+    return context_;
+  }
+  
   async generateContextPrompt(template=null,object=false,variables={}) {
     if (template) {
         await this.loadAndRegisterTemplate(template);
