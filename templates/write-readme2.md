@@ -31,7 +31,7 @@ The README should include the following sections:
 
 Write the content in Markdown format. Use your analysis of the code to generate accurate and helpful content, but also explain things clearly for users who may not be familiar with the implementation details.
 
-Feel free to infer reasonable details if needed, but try to stick to what can be determined from the codebase itself. Let me know if you have any other questions as you're writing!
+Feel free to infer reasonable details if needed, but try to stick to what can be determined from the codebase itself.
 
 ```json:schema
 {
@@ -43,10 +43,10 @@ Feel free to infer reasonable details if needed, but try to stick to what can be
 // these code blocks are returned to 'request' if meta arg is true, in order, and removed from the template
 // think this is good so if other libraries want to perform further processing on the results, they can define them within the templates
 // nodejs code to run after getting results (runs within an isolated async function block)
-// context vars: results (schema), absolute_code_path, files, source_tree, etc (all the template vars)
+// context vars: schema.readme, absolute_code_path, files, source_tree, etc (all the template vars)
 const fs = require('fs').promises;
-// save 'readme' results.readme contents to disk (abs)
-await fs.writeFile(`${absolute_code_path}/README.md`, results.readme, 'utf8');
+// save 'readme' schema.readme contents to disk (abs)
+await fs.writeFile(`${absolute_code_path}/README-generated-test0a.md`, schema.readme, 'utf8');
 ```
 
 ```bash

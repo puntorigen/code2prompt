@@ -118,7 +118,7 @@ Source Tree:
 
   async traverseDirectory(dirPath) {
     const absolutePath = path.resolve(dirPath);
-    const ignorePatternsWithoutViewers = adjustIgnorePatterns(this.ignorePatterns,Object.keys(this.custom_viewers));
+    const ignorePatternsWithoutViewers = this.adjustIgnorePatterns(this.ignorePatterns,Object.keys(this.custom_viewers));
     const files = await glob("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers });
     let tree = {};
     let filesArray = [];
@@ -165,8 +165,28 @@ Source Tree:
     return result;
   }
 
-  async runTemplate(template=this.options.template, prompt='', methods={}, context={}) {
-    const templateContent = await fs.readFile(template, 'utf-8');
+  async executeBlocks(pre=true,context_={}) {
+    const code_helper = new (require('./codeBlocks'));
+    const code_blocks = await this.getCodeBlocks();
+    for (const block of code_blocks) {
+      // test if block.lang ends with ':pre' or not
+      if (block.lang.endsWith(':pre')===pre) {
+          // if block.lang contains 'js'
+          if (block.lang.includes('js')) {
+              const code_executed = await code_helper.executeNode(context_,block.code);
+              // if code_executed is an object
+              if (typeof code_executed === 'object') {
+                  //console.log('adding context from pre:js code block',code_executed);
+                  context_ = {...context_,...code_executed};
+              }
+          }
+      }
+    }
+    // TODO: check param context update safety (not dup context_ param because it may contain functions)
+    return context_;
+  }
+
+  async runTemplate(prompt='', methods={}, context={}) {
     const code_helper = new (require('./codeBlocks'));
     const base_methods = {
       queryLLM:async(question,schema)=>{
@@ -182,30 +202,23 @@ Source Tree:
         return code_executed;
       }
     }};
-    const executeBlocks = async(pre=true,context_)=>{
-      for (const block of code_blocks) {
-        // test if block.lang ends with ':pre' or not
-        if (block.lang.endsWith(':pre')===pre) {
-            // if block.lang contains 'js'
-            if (block.lang.includes('js')) {
-                const code_executed = await code_helper.executeNode(context_,block.code);
-                // if code_executed is an object
-                if (typeof code_executed === 'object') {
-                    //console.log('adding context from pre:js code block',code_executed);
-                    context_ = {...context_,...code_executed};
-                }
-            }
-        }
-      }
-      return additional_context;
-    }
+    //build handlebar template prompt first (to also get initial context vars)
+    const context_prompt = await this.generateContextPrompt(null, true, context);
+    let context_ = { ...methods_, ...context_prompt.context};
     //search x:pre codeblocks and execute
-    let context_ = { methods:methods_, ...context};
-    context_ = await executeBlocks(true);
+    context_ = await this.executeBlocks(true, context_);
     //execute prompt template if template contains a handlebar besides scripts
     //TODO 22-abr-24
+    if (context_prompt.rendered.trim()!='') {
+      const template_res = await this.request(prompt, null, {
+        custom_variables: {...context_}
+      });
+      context_ = {...context_, ...{
+        schema:template_res.data
+      }};
+    }
     //search x codeblocks and execute
-    context_ = await executeBlocks(false);
+    context_ = await this.executeBlocks(false, context_);
 
     return context_;
   }
@@ -260,7 +273,7 @@ Source Tree:
   getLLM(content) {
     const { OpenAIChatApi } = require('llm-api');
     let llm = null;
-    const context_tokens = gpt_tokenizer.encode(context).length;
+    const context_tokens = gpt_tokenizer.encode(content).length;
     if (context_tokens<8100) {
       llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:8100 });
     } else {

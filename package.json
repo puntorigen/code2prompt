@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/puntorigen/code2prompt#readme",
   "dependencies": {
+    "@concepto/console": "^1.2.68",
     "code-blocks": "^1.1.0",
     "dotenv": "^16.4.5",
     "fs-extra": "^11.2.0",
@@ -32,6 +33,8 @@
     "isbinaryfile": "^5.0.2",
     "llm-api": "^1.5.1",
     "node-fetch": "^3.3.2",
+    "prompts": "^2.4.2",
+    "safe-eval": "^0.4.1",
     "tiktoken": "^1.0.14",
     "zod": "^3.22.4",
     "zod-gpt": "^0.15.1"
