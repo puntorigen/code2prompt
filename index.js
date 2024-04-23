@@ -306,14 +306,14 @@ Source Tree:
     // query the LLM without context
     await this.setupFetchPolyfill();
     const { completion } = require('zod-gpt');
-    if (this.OPENAI_KEY) {
-        let openai = this.getLLM(prompt);
+    if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
+        let llm = this.getLLM(prompt);
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (schema) {
-            response = await completion(openai, prompt, { schema: z.object({ schema }) });
+            response = await completion(llm, prompt, { schema: z.object({ schema }) });
         } else {
-            response = await completion(openai, prompt);
+            response = await completion(llm, prompt);
         }
         if (response && response.data && response.data.schema) {
             return_.data = response.data.schema;
@@ -345,14 +345,14 @@ Source Tree:
         context_ = { context:options.custom_context, rendered:'' };
         context = '';
     }
-    if (this.OPENAI_KEY) {
-        const openai = this.getLLM(context);
+    if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
+        const llm = this.getLLM(context);
         let response = {};
         let return_ = { data:{}, usage:{} };
         if (prompt) {
-            response = await completion(openai, context + '\n\n# ' + prompt, { schema: this.schema });
+            response = await completion(llm, context + '\n\n# ' + prompt, { schema: this.schema });
         } else {
-            response = await completion(openai, context, { schema: this.schema });
+            response = await completion(llm, context, { schema: this.schema });
         }
         if (response && response.data && response.data.schema) {
             return_.data = response.data.schema;
