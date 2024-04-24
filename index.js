@@ -179,7 +179,7 @@ Source Tree:
     const code_blocks = await this.getCodeBlocks();
     for (const block of code_blocks) {
       // test if block.lang ends with ':pre' or not; if pre is false, then only run if block.lang doesn't contains ':'
-      if (block.lang.endsWith(':pre')===pre && (pre===false && black.lang.indexOf(':')==-1)) {
+      if (block.lang.endsWith(':pre')===pre && (pre===false && block.lang.indexOf(':')==-1)) {
           // if block.lang contains 'js'
           if (block.lang.includes('js')) {
               const code_executed = await code_helper.executeNode(context_,block.code);
