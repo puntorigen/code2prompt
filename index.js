@@ -178,8 +178,8 @@ Source Tree:
     const code_helper = new (require('./codeBlocks'));
     const code_blocks = await this.getCodeBlocks();
     for (const block of code_blocks) {
-      // test if block.lang ends with ':pre' or not
-      if (block.lang.endsWith(':pre')===pre) {
+      // test if block.lang ends with ':pre' or not; if pre is false, then only run if block.lang doesn't contains ':'
+      if (block.lang.endsWith(':pre')===pre && (pre===false && black.lang.indexOf(':')==-1)) {
           // if block.lang contains 'js'
           if (block.lang.includes('js')) {
               const code_executed = await code_helper.executeNode(context_,block.code);
@@ -193,6 +193,11 @@ Source Tree:
     }
     // TODO: check param context update safety (not dup context_ param because it may contain functions)
     return context_;
+  }
+
+  async executeNode(context_={},code) {
+    const code_executed = await code_helper.executeNode(context_,code);
+    return code_executed;
   }
 
   async runTemplate(prompt='', methods={}, context={}) {
