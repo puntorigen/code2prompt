@@ -1,4 +1,5 @@
 const fs = require("fs-extra");
+const fs_ = require("fs").promises;
 const path = require("path");
 const handlebars = require("handlebars");
 const { glob } = require("glob");
@@ -128,16 +129,13 @@ Source Tree:
 
   async readContent(filePath, maxBytes) {
     if (maxBytes !== null) {
-      const fileHandle = await fs.open(filePath, 'r');
+      const fileHandle = await fs_.open(filePath, 'r');
       try {
         const buffer = Buffer.alloc(maxBytes);
         const { bytesRead } = await fileHandle.read(buffer, 0, maxBytes, 0);
         return buffer.toString('utf-8', 0, bytesRead);
       } finally {
-        try {   
           await fileHandle?.close();
-        } catch(err) {
-        }
       }
     } else {
       return fs.readFile(filePath, 'utf-8');
@@ -191,6 +189,45 @@ Source Tree:
       }
     });
     return result;
+  }
+  
+  stringifyTreeFromPaths(paths) {
+    const tree = {};
+
+    // Build the tree
+    paths.forEach((filePath) => {
+      const parts = filePath.split(path.sep);
+      let current = tree;
+      parts.forEach((part, index) => {
+        if (index === parts.length - 1) {
+          // It's a file, we stop here
+          current[part] = filePath;  // Store the file path or just `null` if you don't need the path in the final tree
+        } else {
+          // It's a directory
+          if (!current[part]) {
+            current[part] = {};
+          }
+          current = current[part];
+        }
+      });
+    });
+
+    // Stringify the tree
+    const stringifyTree_ = (tree, prefix = '') => {
+      let result = '';
+      const keys = Object.keys(tree);
+      keys.forEach((key, index) => {
+        const isLast = index === keys.length - 1;
+        const connector = isLast ? '└── ' : '├── ';
+        result += `${prefix}${connector}${key}\n`;
+        if (typeof tree[key] === 'object' && Object.keys(tree[key]).length > 0) {
+          result += stringifyTree_(tree[key], `${prefix}${isLast ? '    ' : '|   '}`);
+        }
+      });
+      return result;
+    };
+
+    return stringifyTree_(tree);
   }
 
   async executeBlocks(pre=true,context_={}) {
