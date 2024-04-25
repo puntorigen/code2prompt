@@ -128,18 +128,18 @@ Source Tree:
 
   async readContent(filePath, maxBytes) {
     if (maxBytes !== null) {
-      const buffer = Buffer.alloc(maxBytes);
-      const fd = await fs.open(filePath, 'r');
+      const fileHandle = await fs.open(filePath, 'r');
       try {
-        const { bytesRead } = await fd.read(buffer, 0, maxBytes, 0);
+        const buffer = Buffer.alloc(maxBytes);
+        const { bytesRead } = await fileHandle.read(buffer, 0, maxBytes, 0);
         return buffer.toString('utf-8', 0, bytesRead);
       } finally {
-        await fd.close();
+        await fileHandle.close();
       }
     } else {
       return fs.readFile(filePath, 'utf-8');
     }
-  }  
+  } 
 
   async traverseDirectory(dirPath, maxBytes=this.maxBytesPerFile) {
     const absolutePath = path.resolve(dirPath);
