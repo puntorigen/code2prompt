@@ -134,7 +134,10 @@ Source Tree:
         const { bytesRead } = await fileHandle.read(buffer, 0, maxBytes, 0);
         return buffer.toString('utf-8', 0, bytesRead);
       } finally {
-        await fileHandle.close();
+        try {   
+          await fileHandle?.close();
+        } catch(err) {
+        }
       }
     } else {
       return fs.readFile(filePath, 'utf-8');
