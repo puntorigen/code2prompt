@@ -23,6 +23,7 @@ class Code2Prompt {
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
     this.GROQ_KEY = options.GROQ_KEY ? (options.GROQ_KEY) : null;
+    this.maxBytesPerFile = options.maxBytesPerFile ? (options.maxBytesPerFile) : 8192;
     this.loadAndRegisterTemplate(this.options.template);
   }
 
@@ -125,7 +126,22 @@ Source Tree:
     }, []);
   }
 
-  async traverseDirectory(dirPath) {
+  async readContent(filePath, maxBytes) {
+    if (maxBytes !== null) {
+      const buffer = Buffer.alloc(maxBytes);
+      const fd = await fs.open(filePath, 'r');
+      try {
+        const { bytesRead } = await fd.read(buffer, 0, maxBytes, 0);
+        return buffer.toString('utf-8', 0, bytesRead);
+      } finally {
+        await fd.close();
+      }
+    } else {
+      return fs.readFile(filePath, 'utf-8');
+    }
+  }
+
+  async traverseDirectory(dirPath, maxBytes=this.maxBytesPerFile) {
     const absolutePath = path.resolve(dirPath);
     const ignorePatternsWithoutViewers = this.adjustIgnorePatterns(this.ignorePatterns,Object.keys(this.custom_viewers));
     const files = await glob("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers });
@@ -147,7 +163,7 @@ Source Tree:
             if (extension in this.custom_viewers) {
               content = await this.custom_viewers[extension](file);
             } else {
-              content = await fs.readFile(file, 'utf-8');
+              content = await this.readContent(file, maxBytes);
             }
             filesArray.push({ path: relativePath, code: content });
           } else {
