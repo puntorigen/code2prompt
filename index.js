@@ -139,7 +139,7 @@ Source Tree:
     } else {
       return fs.readFile(filePath, 'utf-8');
     }
-  }
+  }  
 
   async traverseDirectory(dirPath, maxBytes=this.maxBytesPerFile) {
     const absolutePath = path.resolve(dirPath);
