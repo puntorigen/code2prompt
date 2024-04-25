@@ -24,6 +24,7 @@ class Code2Prompt {
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
     this.GROQ_KEY = options.GROQ_KEY ? (options.GROQ_KEY) : null;
+    this.ANTHROPIC_KEY = options.ANTHROPIC_KEY ? (options.ANTHROPIC_KEY) : null;
     this.maxBytesPerFile = options.maxBytesPerFile ? (options.maxBytesPerFile) : 8192;
     this.loadAndRegisterTemplate(this.options.template);
   }
@@ -265,8 +266,7 @@ Source Tree:
       queryContext:async(question,schema)=>{
         return await this.request(question,schema); 
       },
-      extractCodeBlocks:this.extractCodeBlocks,
-      require
+      extractCodeBlocks:this.extractCodeBlocks
     };
     const methods_ = {...base_methods, ...methods, ...{
       executeScript: async(code)=>{
@@ -343,16 +343,24 @@ Source Tree:
   }
 
   getLLM(content) {
-    const { OpenAIChatApi,GroqChatApi } = require('llm-api');
+    //ANTHROPIC_KEY
+    const { OpenAIChatApi,GroqChatApi,AnthropicChatApi } = require('llm-api');
     let llm = null;
     const context_tokens = gpt_tokenizer.encode(content).length;
-    if (this.OPENAI_KEY && this.OPENAI_KEY!=='') {
+    // PREFER ANTHROPIC models for large contexts
+    if (this.ANTHROPIC_KEY && this.ANTHROPIC_KEY!=='' && context_tokens>16000) {
+      llm = new AnthropicChatApi({ apiKey:this.ANTHROPIC_KEY, timeout:20000 }, { model: 'claude-3-opus-20240229', contextSize:100000 });
+    } else if (this.GROQ_KEY && this.GROQ_KEY!=='' && context_tokens>16000 && context_tokens<32000) {
+      llm = new GroqChatApi({ apiKey:this.GROQ_KEY, timeout:20000 }, { model: 'mixtral-8x7b-32768', contextSize:32000 });
+    } else if (this.OPENAI_KEY && this.OPENAI_KEY!=='' && context_tokens<16200) {
       // USE defined OPENAI models
       if (context_tokens<8100) {
         llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:8100 });
       } else {
         llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:16200 });
       }
+    } else if (this.ANTHROPIC_KEY && this.ANTHROPIC_KEY!=='') {
+      llm = new AnthropicChatApi({ apiKey:this.ANTHROPIC_KEY, timeout:20000 }, { model: 'claude-3-opus-20240229', contextSize:100000 });
     } else if (this.GROQ_KEY && this.GROQ_KEY!=='') {
       if (context_tokens<8100) {
         llm = new GroqChatApi({ apiKey:this.GROQ_KEY, timeout:20000 }, { model: 'llama3-70b-8192', contextSize:8100 });
@@ -369,7 +377,8 @@ Source Tree:
       await this.setupFetchPolyfill();
     } catch(e) {}
     const { completion } = require('zod-gpt');
-    if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
+    //if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
+    if (true) {
         let llm = this.getLLM(prompt);
         let response = {};
         let return_ = { data:{}, usage:{} };
@@ -408,7 +417,8 @@ Source Tree:
         context_ = { context:options.custom_context, rendered:'' };
         context = '';
     }
-    if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
+    //if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
+    if (true) {
         const llm = this.getLLM(context);
         let response = {};
         let return_ = { data:{}, usage:{} };
