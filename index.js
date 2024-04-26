@@ -245,6 +245,11 @@ Source Tree:
                   //console.log('adding context from pre:js code block',code_executed);
                   context_ = {...context_,...code_executed};
               }
+          } else if (block.lang.includes('bash')) {
+            const code_executed = await code_helper.executeBash(context_,block.code);
+            if (code_executed.vars) {
+              context_ = {...context_,...code_executed.vars};
+            }
           }
       }
     }
@@ -253,7 +258,14 @@ Source Tree:
   }
 
   async executeNode(context_={},code) {
+    const code_helper = new (require('./codeBlocks'));
     const code_executed = await code_helper.executeNode(context_,code);
+    return code_executed;
+  }
+
+  async executeBash(context_={},code) {
+    const code_helper = new (require('./codeBlocks'));
+    const code_executed = await code_helper.executeBash(context_,code);
     return code_executed;
   }
 
