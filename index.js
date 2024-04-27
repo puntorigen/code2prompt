@@ -26,7 +26,12 @@ class Code2Prompt {
     this.GROQ_KEY = options.GROQ_KEY ? (options.GROQ_KEY) : null;
     this.ANTHROPIC_KEY = options.ANTHROPIC_KEY ? (options.ANTHROPIC_KEY) : null;
     this.maxBytesPerFile = options.maxBytesPerFile ? (options.maxBytesPerFile) : 8192;
+    this.debugger = options.debugger ? (options.debugger) : false;
     this.loadAndRegisterTemplate(this.options.template);
+  }
+
+  debug(message) {
+    if (this.debugger) console.log('[code2prompt]: '+message);
   }
 
   registerFileViewer(ext,method) {
@@ -269,6 +274,12 @@ Source Tree:
     return code_executed;
   }
 
+  async spawnBash(context_={},code) {
+    const code_helper = new (require('./codeBlocks'));
+    const code_executed = await code_helper.spawnBash(context_,code);
+    return code_executed;
+  }
+
   async runTemplate(prompt='', methods={}, context={}) {
     const code_helper = new (require('./codeBlocks'));
     const base_methods = {
@@ -359,12 +370,15 @@ Source Tree:
     const { OpenAIChatApi,GroqChatApi,AnthropicChatApi } = require('llm-api');
     let llm = null;
     const context_tokens = gpt_tokenizer.encode(content).length;
-    // PREFER ANTHROPIC models for large contexts
-    if (this.ANTHROPIC_KEY && this.ANTHROPIC_KEY!=='' && context_tokens>16000) {
+    // PREFER ANTHROPIC models if available
+    if (this.ANTHROPIC_KEY && this.ANTHROPIC_KEY!=='' && context_tokens>8000) { // && context_tokens>8000) {
+      this.debug('using Anthropic model');
       llm = new AnthropicChatApi({ apiKey:this.ANTHROPIC_KEY, timeout:20000 }, { model: 'claude-3-opus-20240229', contextSize:100000 });
-    } else if (this.GROQ_KEY && this.GROQ_KEY!=='' && context_tokens>16000 && context_tokens<32000) {
+    } else if (this.GROQ_KEY && this.GROQ_KEY!=='' && context_tokens>8000 && context_tokens<16000) {
+      this.debug('using GROQ model');
       llm = new GroqChatApi({ apiKey:this.GROQ_KEY, timeout:20000 }, { model: 'mixtral-8x7b-32768', contextSize:32000 });
     } else if (this.OPENAI_KEY && this.OPENAI_KEY!=='' && context_tokens<16200) {
+      this.debug('using OpenAI model');
       // USE defined OPENAI models
       if (context_tokens<8100) {
         llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-4', contextSize:8100 });
@@ -372,8 +386,10 @@ Source Tree:
         llm = new OpenAIChatApi({ apiKey:this.OPENAI_KEY, timeout:20000 }, { model: 'gpt-3.5-turbo-16k', contextSize:16200 });
       }
     } else if (this.ANTHROPIC_KEY && this.ANTHROPIC_KEY!=='') {
+      this.debug('using Anthropic model');
       llm = new AnthropicChatApi({ apiKey:this.ANTHROPIC_KEY, timeout:20000 }, { model: 'claude-3-opus-20240229', contextSize:100000 });
     } else if (this.GROQ_KEY && this.GROQ_KEY!=='') {
+      this.debug('using GROQ model');
       if (context_tokens<8100) {
         llm = new GroqChatApi({ apiKey:this.GROQ_KEY, timeout:20000 }, { model: 'llama3-70b-8192', contextSize:8100 });
       } else {
