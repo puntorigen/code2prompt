@@ -40,6 +40,20 @@ class Code2Prompt {
     this.debug('Model preferences updated: ' + JSON.stringify(preferences));
   }
 
+  setLLMAPI(provider,value) {
+    if (provider === 'ANTHROPIC') {
+      this.ANTHROPIC_KEY = value;
+      return true;    
+    } else if (provider === 'GROQ') {
+      this.GROQ_KEY = value;
+      return true;    
+    } else if (provider === 'OPENAI') {
+      this.OPENAI_KEY = value;
+      return true;    
+    }
+    return false;
+  }
+
   registerFileViewer(ext,method) {
     this.custom_viewers[ext] = method;
   }
