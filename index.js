@@ -20,7 +20,7 @@ class Code2Prompt {
     this.last_QAsession = null;
     this.full_source_tree = false; //false=source_tree equals to files shown on prompt, true=source_tree contains all files ignoring exclusions
     this.binary = false; // false=skips binary files
-    this.custom_viewers = {}; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
+    this.custom_viewers = options.custom_viewers ? (options.custom_viewers) : {}; // registered custom file viewers (ex. docx, xlsx, pdf, etc)
     // if OPENAI_KEY is specified, it will be used to call the OpenAI API
     this.OPENAI_KEY = options.OPENAI_KEY ? (options.OPENAI_KEY) : null;
     this.GROQ_KEY = options.GROQ_KEY ? (options.GROQ_KEY) : null;
@@ -56,6 +56,7 @@ class Code2Prompt {
 
   registerFileViewer(ext,method) {
     this.custom_viewers[ext] = method;
+    this.debug(`Viewer registered for ${ext}`);
   }
 
   recordQA(session='') {
@@ -177,6 +178,7 @@ Source Tree:
 
     for (let file of files) {
       const extension = path.extname(file).toLowerCase();
+      this.debug(`Processing file: ${file}, extension: ${extension}`);
       if (this.extensions.length === 0 || this.extensions.includes(extension.substring(1))) {
         const relativePath = path.relative(absolutePath, file);
         const parts = relativePath.split(path.sep);
@@ -188,8 +190,10 @@ Source Tree:
             current[part] = relativePath;
             let content = '';
             if (extension in this.custom_viewers) {
+              this.debug(`Found custom viewer for ${extension}, file: ${file}`);
               content = await this.custom_viewers[extension](file);
             } else {
+              this.debug(`No custom viewer for ${extension}, reading content directly`);
               content = await this.readContent(file, maxBytes);
             }
             filesArray.push({ path: relativePath, code: content });
