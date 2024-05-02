@@ -397,13 +397,13 @@ Source Tree:
     for (const provider of this.modelPreferences) {
       switch (provider) {
         case 'ANTHROPIC':
-          if (this.ANTHROPIC_KEY && context_tokens > 8000) {
+          if (this.ANTHROPIC_KEY && context_tokens < 120000) {
             this.debug('Using Anthropic model');
-            return new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 20000 }, { model: 'claude-3-opus-20240229', contextSize: 100000 });
+            return new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 20000 }, { model: 'claude-3-opus-20240229', contextSize: 120000 });
           }
           break;
         case 'GROQ':
-          if (this.GROQ_KEY) {
+          if (this.GROQ_KEY && context_tokens < 32000) {
             this.debug('Using GROQ model');
             if (context_tokens < 8100) {
               return new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama3-70b-8192', contextSize: 8100 });
@@ -413,7 +413,7 @@ Source Tree:
           }
           break;
         case 'OPENAI':
-          if (this.OPENAI_KEY) {
+          if (this.OPENAI_KEY && context_tokens < 16200) {
             this.debug('Using OpenAI model');
             if (context_tokens < 8100) {
               return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4', contextSize: 8100 });
