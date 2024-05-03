@@ -1,6 +1,6 @@
 {
   "name": "code2prompt",
-  "version": "1.0.95",
+  "version": "1.0.96",
   "description": "NodeJS Class for transforming a given codebase directory into an LLM prompt",
   "main": "index.js",
   "scripts": {

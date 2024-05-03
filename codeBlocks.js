@@ -161,9 +161,9 @@ class codeBlocks {
             });
             if (stderr) {
                 //console.error('Error executing bash:', stderr);
-                return { vars, output: stdout, error: stderr };
+                return { output: stdout, error: stderr };
             }
-            return { vars, output: stdout };
+            return { output: stdout };
         } catch (error) {
             //console.error('Execution error:', error);
             throw error;
