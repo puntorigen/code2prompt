@@ -13,6 +13,42 @@ class codeBlocks {
         this.lastEval = '';
     }
 
+    async executePython(context = {}, code = '') {
+        const { python } = require('pythonia');
+    
+        // Load the Python helper script
+        const py = await python('./python_runner.py'); // Ensure the file path is correct
+    
+        // If context specifies packages to install, install them first
+        if (context.packages && Array.isArray(context.packages)) {
+            for (const pkg of context.packages) {
+                const installResult = await py.install_package(pkg);
+                this.x_console.out({ color:'cyan', message:`Package install log: ${installResult}` });
+            }
+        }
+    
+        // Convert context to JSON for passing into Python
+        const contextJson = JSON.stringify(context);
+    
+        // Run the Python code
+        const resultJson = await py.run_python_code(code, contextJson);
+    
+        // Parse the returned JSON from Python
+        let result;
+        try {
+            result = JSON.parse(resultJson);
+            if (result.result) result = result.result;
+            console.log('returned from python:', result);
+        } catch (err) {            
+            //result = { error: 'Failed to parse Python output as JSON', details: err.toString() };
+            results = {};
+        }
+    
+        // Close the Python interpreter
+        await python.exit();
+        return result;
+    }    
+
     async executeNode(context=null,code=null) {
         // context=object with variables returned by previous code blocks
         const prompts = require('prompts');

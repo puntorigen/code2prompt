@@ -268,12 +268,19 @@ Source Tree:
       if ((pre && block.lang.endsWith(':pre')) || (!pre && block.lang.indexOf(':') == -1)) {
           // if block.lang contains 'js'
           if (block.lang.includes('js')) {
-              const code_executed = await code_helper.executeNode(context_,block.code);
-              // if code_executed is an object
-              if (typeof code_executed === 'object') {
-                  //console.log('adding context from pre:js code block',code_executed);
-                  context_ = {...context_,...code_executed};
-              }
+            const code_executed = await code_helper.executeNode(context_,block.code);
+            // if code_executed is an object
+            if (typeof code_executed === 'object') {
+              //console.log('adding context from pre:js code block',code_executed);
+              context_ = {...context_,...code_executed};
+            }
+          } else if (block.lang.includes('python')) {
+            // if block.lang contains 'python'
+            const code_executed = await code_helper.executePython(context_,block.code);
+            if (typeof code_executed === 'object') {
+              //console.log('adding context from pre:python code block',code_executed);
+              context_ = {...context_,...code_executed};
+            }
           } else if (block.lang.includes('bash')) {
             const code_executed = await code_helper.executeBash(context_,block.code);
             if (code_executed.vars) {
@@ -295,6 +302,12 @@ Source Tree:
   async executeBash(context_={},code) {
     const code_helper = new (require('./codeBlocks'));
     const code_executed = await code_helper.executeBash(context_,code);
+    return code_executed;
+  }
+
+  async executePython(context_={},code) {
+    const code_helper = new (require('./codeBlocks'));
+    const code_executed = await code_helper.executePython(context_,code);
     return code_executed;
   }
 
@@ -397,7 +410,7 @@ Source Tree:
     for (const provider of this.modelPreferences) {
       switch (provider) {
         case 'ANTHROPIC':
-          if (this.ANTHROPIC_KEY && context_tokens < 120000) {
+          if (this.ANTHROPIC_KEY && context_tokens > 208000) { //deactivate anthropic
             this.debug('Using Anthropic model');
             return new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 20000 }, { model: 'claude-3-opus-20240229', contextSize: 120000 });
           }
@@ -413,12 +426,13 @@ Source Tree:
           }
           break;
         case 'OPENAI':
-          if (this.OPENAI_KEY && context_tokens < 16200) {
-            this.debug('Using OpenAI model');
-            if (context_tokens < 8100) {
-              return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4', contextSize: 8100 });
+          if (this.OPENAI_KEY && context_tokens < 128000) {
+            if (context_tokens > 64000) {
+              this.debug('Using OpenAI model gpt-4o-mini');
+              return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o-mini', contextSize: 128000 });
             } else {
-              return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-3.5-turbo-16k', contextSize: 16200 });
+              this.debug('Using OpenAI model gpt-4o');
+              return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o', contextSize: 128000 });
             }
           }
           break;
