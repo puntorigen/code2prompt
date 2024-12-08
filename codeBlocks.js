@@ -24,7 +24,7 @@ class codeBlocks {
             fs.mkdirSync(code2promptDir, { recursive: true });
         }
         const originalWorkingDir = process.cwd();
-        process.chdir(homeDir);
+        process.chdir(code2promptDir);
 
         process.env.REQ_TIMEOUT = '3600000'; // set pythonia timeout to 1 hour
         const { python } = require('pythonia');
