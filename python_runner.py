@@ -59,7 +59,7 @@ def run_python_code(code, context_json='{}'):
         return f"Embedded {filepath}"
 
     def require(package_or_path):
-        # If argument looks like a file path, embed it; else treat as package
+        # If argument looks like a file path, embed it; else treat as a package
         if package_or_path.endswith('.py') or package_or_path.startswith('.') or package_or_path.startswith('/'):
             return embed_file(package_or_path)
         else:
@@ -74,9 +74,11 @@ def run_python_code(code, context_json='{}'):
         original_stdout.write(message)
         original_stdout.flush()
 
+    # Add everything to the namespace
     namespace['require'] = require
     namespace['silence'] = silence
     namespace['printit'] = printit
+    namespace['print'] = printit  # Override print to use printit
 
     indented_code = "\n".join("    " + line for line in code.splitlines())
     async_wrapper = f"""
@@ -88,7 +90,6 @@ async def __user_async_func():
 result = asyncio.run(__user_async_func())
 """
 
-    # Now capture stdout/stderr for the entire user code execution
     old_stdout = sys.stdout
     old_stderr = sys.stderr
     sys.stdout = io.StringIO()
@@ -100,10 +101,9 @@ result = asyncio.run(__user_async_func())
         captured_stdout = sys.stdout.getvalue()
         captured_stderr = sys.stderr.getvalue()
 
-        # Remove 'require' if not needed in return values
         if 'require' in namespace:
             del namespace['require']
-        # 'silence' and 'printit' can stay for user convenience
+        # 'silence', 'printit', and 'print' can remain if desired
 
         def is_json_serializable(value):
             try:
@@ -113,15 +113,12 @@ result = asyncio.run(__user_async_func())
                 return False
 
         serializable_namespace = {k: v for k, v in namespace.items() if is_json_serializable(v)}
-
-        # Add captured outputs
-        serializable_namespace['__captured_stdout__'] = captured_stdout
-        serializable_namespace['__captured_stderr__'] = captured_stderr
+        serializable_namespace['python_stdout'] = captured_stdout
+        serializable_namespace['python_stderr'] = captured_stderr
 
         return json.dumps(serializable_namespace)
     except Exception as e:
         return json.dumps({"error": str(e)})
     finally:
-        # Restore original stdout and stderr
         sys.stdout = old_stdout
         sys.stderr = old_stderr
