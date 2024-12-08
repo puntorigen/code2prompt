@@ -28,6 +28,7 @@ class Code2Prompt {
     this.maxBytesPerFile = options.maxBytesPerFile ? (options.maxBytesPerFile) : 8192;
     this.debugger = options.debugger ? (options.debugger) : false;
     this.modelPreferences = ["OPENAI","ANTHROPIC","GROQ"]; // New property for model preferences
+    this.templateDir = this.options.template ? path.dirname(this.options.template) : process.cwd();
     this.loadAndRegisterTemplate(this.options.template);
   }
 
@@ -276,6 +277,7 @@ Source Tree:
             }
           } else if (block.lang.includes('python')) {
             // if block.lang contains 'python'
+            context_ = { ...context_, templateDir: this.templateDir };
             const code_executed = await code_helper.executePython(context_,block.code);
             if (typeof code_executed === 'object') {
               //console.log('adding context from pre:python code block',code_executed);
@@ -307,7 +309,8 @@ Source Tree:
 
   async executePython(context_={},code) {
     const code_helper = new (require('./codeBlocks'));
-    const code_executed = await code_helper.executePython(context_,code);
+    const context__ = { ...context_, templateDir: this.templateDir };
+    const code_executed = await code_helper.executePython(context__,code);
     return code_executed;
   }
 
