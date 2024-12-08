@@ -52,7 +52,7 @@ class codeBlocks {
         try {
             result = JSON.parse(resultJson);
             if (result.result) result = result.result;
-            console.log('returned from python:', result);
+            //console.log('returned from python:', result);
         } catch (err) {            
             //result = { error: 'Failed to parse Python output as JSON', details: err.toString() };
             results = {};
