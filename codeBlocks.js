@@ -14,10 +14,24 @@ class codeBlocks {
     }
 
     async executePython(context = {}, code = '') {
+        const fs = require('fs');
+        const path = require('path');
+        const os = require('os');
+
+        const homeDir = os.homedir();
+        const code2promptDir = path.join(homeDir, 'code2prompt');
+        if (!fs.existsSync(code2promptDir)) {
+            fs.mkdirSync(code2promptDir, { recursive: true });
+        }
+        const originalWorkingDir = process.cwd();
+        process.chdir(homeDir);
+
+        process.env.REQ_TIMEOUT = '3600000'; // set pythonia timeout to 1 hour
         const { python } = require('pythonia');
-    
+
         // Load the Python helper script
         const py = await python('./python_runner.py'); // Ensure the file path is correct
+        process.chdir(originalWorkingDir); // restore original cwd
     
         // If context specifies packages to install, install them first
         if (context.packages && Array.isArray(context.packages)) {
