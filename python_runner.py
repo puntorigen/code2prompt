@@ -112,11 +112,28 @@ result = asyncio.run(__user_async_func())
             except:
                 return False
 
-        serializable_namespace = {k: v for k, v in namespace.items() if is_json_serializable(v)}
-        serializable_namespace['python_stdout'] = captured_stdout
-        serializable_namespace['python_stderr'] = captured_stderr
+        # Instead of filtering, let's ensure everything is serializable:
+        final_namespace = {}
+        for k, v in namespace.items():
+            try:
+                json.dumps(v)
+                final_namespace[k] = v
+            except:
+                # Fallback: convert to string if not serializable
+                final_namespace[k] = str(v)
 
-        return json.dumps(serializable_namespace)
+        # Ensure 'result' is correctly handled:
+        if 'result' in final_namespace:
+            # Already handled by fallback, but if you want special handling:
+            res_val = final_namespace['result']
+            # Here res_val is already a string if non-serializable
+            final_namespace['result'] = res_val
+
+        final_namespace['__captured_stdout__'] = captured_stdout
+        final_namespace['__captured_stderr__'] = captured_stderr
+
+        return json.dumps(final_namespace)
+    
     except Exception as e:
         return json.dumps({"error": str(e)})
     finally:
