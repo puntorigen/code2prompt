@@ -1,11 +1,11 @@
-const Code2Prompt = require('./index');
+const Code2Prompt = require('../index');
 const { z } = require('zod');
 require('dotenv').config();
 
 !async function(){
     // Example usage
     const options = {
-        path: ".",
+        path: "../",
         extensions: ["js","json"],
         template: 'templates/write-readme2.md',
         ignore: ["**/node_modules/**","*-lock.json"], // Specify patterns to ignore
