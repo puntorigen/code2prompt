@@ -27,13 +27,13 @@ class Code2Prompt {
     this.ANTHROPIC_KEY = options.ANTHROPIC_KEY ? (options.ANTHROPIC_KEY) : null;
     this.maxBytesPerFile = options.maxBytesPerFile ? (options.maxBytesPerFile) : 8192;
     this.debugger = options.debugger ? (options.debugger) : false;
-    this.modelPreferences = ["OPENAI","ANTHROPIC","GROQ"]; // New property for model preferences
+    this.modelPreferences = ["OPENAI", "ANTHROPIC", "GROQ"]; // New property for model preferences
     this.templateDir = this.options.template ? path.dirname(this.options.template) : process.cwd();
     this.loadAndRegisterTemplate(this.options.template);
   }
 
   debug(message) {
-    if (this.debugger) console.log('[code2prompt]: '+message);
+    if (this.debugger) console.log('[code2prompt]: ' + message);
   }
 
   setModelPreferences(preferences) {
@@ -41,28 +41,28 @@ class Code2Prompt {
     this.debug('Model preferences updated: ' + JSON.stringify(preferences));
   }
 
-  setLLMAPI(provider,value) {
+  setLLMAPI(provider, value) {
     if (provider === 'ANTHROPIC') {
       this.ANTHROPIC_KEY = value;
-      return true;    
+      return true;
     } else if (provider === 'GROQ') {
       this.GROQ_KEY = value;
-      return true;    
+      return true;
     } else if (provider === 'OPENAI') {
       this.OPENAI_KEY = value;
-      return true;    
+      return true;
     }
     return false;
   }
 
-  registerFileViewer(ext,method) {
+  registerFileViewer(ext, method) {
     this.custom_viewers[ext] = method;
     this.debug(`Viewer registered for ${ext}`);
   }
 
-  recordQA(session='') {
+  recordQA(session = '') {
     this.last_QAsession = session;
-    if (!this.QArecordings[session]) this.QArecordings[session]=[];
+    if (!this.QArecordings[session]) this.QArecordings[session] = [];
   }
 
   getQArecordings(session) {
@@ -71,7 +71,7 @@ class Code2Prompt {
 
   async extractCodeBlocks(text) {
     // extract code blocks from a given text (maybe from an LLM response)
-    return (await codeBlocks.fromString(text)).map((i)=>({
+    return (await codeBlocks.fromString(text)).map((i) => ({
       lang: i.lang,
       code: i.value
     }));
@@ -110,27 +110,27 @@ Source Tree:
       if (code_blocks.length > 0) {
         // extract 'lang' defined code blocks into 'this.code_blocks' and remove them from template
         // if lang is 'schema' assign to schema
-        for (let i=0; i<code_blocks.length; i++) {
-            const block = code_blocks[i];
-            // remove code block statement from template
-            if (block.lang) {
-                const original = '```'+block.lang+'\n' + block.value + '\n```'; 
-                templateContent = templateContent.replace(original,"");
-            }
-            //
-            if (block.lang === 'schema' || block.lang === 'json:schema') {
-                // build zod schema from template schema
-                const json_parsed = JSON.parse(block.value);
-                const zod_schema = z.object({ schema:this.createZodSchema(json_parsed) });
-                if (!this.schema) this.schema = zod_schema;
-            } else if (block.lang) {
-                this.code_blocks.push({ lang:block.lang, code:block.value });
-            }
+        for (let i = 0; i < code_blocks.length; i++) {
+          const block = code_blocks[i];
+          // remove code block statement from template
+          if (block.lang) {
+            const original = '```' + block.lang + '\n' + block.value + '\n```';
+            templateContent = templateContent.replace(original, "");
+          }
+          //
+          if (block.lang === 'schema' || block.lang === 'json:schema') {
+            // build zod schema from template schema
+            const json_parsed = JSON.parse(block.value);
+            const zod_schema = z.object({ schema: this.createZodSchema(json_parsed) });
+            if (!this.schema) this.schema = zod_schema;
+          } else if (block.lang) {
+            this.code_blocks.push({ lang: block.lang, code: block.value });
+          }
         }
         this.template = handlebars.compile(templateContent);
         //console.log('code_blocks:',this.code_blocks);
       }
-    }    
+    }
 
   }
 
@@ -139,19 +139,19 @@ Source Tree:
     const normalizedExtensions = extensionsNotIgnored.map(ext => ext.startsWith('.') ? ext : `.${ext}`);
 
     return ignorePatterns.reduce((acc, pattern) => {
-        // Check if the pattern directly relates to a file extension
-        if (pattern.startsWith('**/*.')) {
-            // Extract the extension from the pattern
-            const extPattern = path.extname(pattern);
-            // Check if this extension is in the normalized list of extensions not to ignore
-            if (normalizedExtensions.includes(extPattern)) {
-                // If it is, do not add this pattern to the final list of ignore patterns
-                return acc;
-            }
+      // Check if the pattern directly relates to a file extension
+      if (pattern.startsWith('**/*.')) {
+        // Extract the extension from the pattern
+        const extPattern = path.extname(pattern);
+        // Check if this extension is in the normalized list of extensions not to ignore
+        if (normalizedExtensions.includes(extPattern)) {
+          // If it is, do not add this pattern to the final list of ignore patterns
+          return acc;
         }
-        // Otherwise, add the pattern to the final list
-        acc.push(pattern);
-        return acc;
+      }
+      // Otherwise, add the pattern to the final list
+      acc.push(pattern);
+      return acc;
     }, []);
   }
 
@@ -163,17 +163,17 @@ Source Tree:
         const { bytesRead } = await fileHandle.read(buffer, 0, maxBytes, 0);
         return buffer.toString('utf-8', 0, bytesRead);
       } finally {
-          await fileHandle?.close();
+        await fileHandle?.close();
       }
     } else {
       return fs.readFile(filePath, 'utf-8');
     }
-  } 
+  }
 
-  async traverseDirectory(dirPath, maxBytes=this.maxBytesPerFile) {
+  async traverseDirectory(dirPath, maxBytes = this.maxBytesPerFile) {
     const absolutePath = path.resolve(dirPath);
-    const ignorePatternsWithoutViewers = this.adjustIgnorePatterns(this.ignorePatterns,Object.keys(this.custom_viewers));
-    const files = await glob("**", {  cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers });
+    const ignorePatternsWithoutViewers = this.adjustIgnorePatterns(this.ignorePatterns, Object.keys(this.custom_viewers));
+    const files = await glob("**", { cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers });
     let tree = {};
     let filesArray = [];
 
@@ -221,7 +221,7 @@ Source Tree:
     });
     return result;
   }
-  
+
   stringifyTreeFromPaths(paths) {
     const tree = {};
 
@@ -261,114 +261,118 @@ Source Tree:
     return stringifyTree_(tree);
   }
 
-  async executeBlocks(pre=true,context_={}) {
+  async executeBlocks(pre = true, context_ = {}) {
     const code_helper = new (require('./codeBlocks'));
     const code_blocks = await this.getCodeBlocks();
     for (const block of code_blocks) {
       // test if block.lang ends with ':pre' or not; if pre is false, then only run if block.lang doesn't contains ':'
       if ((pre && block.lang.endsWith(':pre')) || (!pre && block.lang.indexOf(':') == -1)) {
-          // if block.lang contains 'js'
-          if (block.lang.includes('js')) {
-            const code_executed = await code_helper.executeNode(context_,block.code);
-            // if code_executed is an object
-            if (typeof code_executed === 'object') {
-              //console.log('adding context from pre:js code block',code_executed);
-              context_ = {...context_,...code_executed};
-            }
-          } else if (block.lang.includes('python')) {
-            // if block.lang contains 'python'
-            context_ = { ...context_, templateDir: this.templateDir };
-            const code_executed = await code_helper.executePython(context_,block.code);
-            if (typeof code_executed === 'object') {
-              //console.log('adding context from pre:python code block',code_executed);
-              context_ = {...context_,...code_executed};
-            }
-          } else if (block.lang.includes('bash')) {
-            const code_executed = await code_helper.executeBash(context_,block.code);
-            if (code_executed.vars) {
-              context_ = {...context_,...code_executed.vars};
-            }
+        // if block.lang contains 'js'
+        if (block.lang.includes('js')) {
+          const code_executed = await code_helper.executeNode(context_, block.code);
+          // if code_executed is an object
+          if (typeof code_executed === 'object') {
+            //console.log('adding context from pre:js code block',code_executed);
+            context_ = { ...context_, ...code_executed };
           }
+        } else if (block.lang.includes('python')) {
+          // if block.lang contains 'python'
+          context_ = { ...context_, templateDir: this.templateDir };
+          const code_executed = await code_helper.executePython(context_, block.code);
+          if (typeof code_executed === 'object') {
+            //console.log('adding context from pre:python code block',code_executed);
+            context_ = { ...context_, ...code_executed };
+          }
+        } else if (block.lang.includes('bash')) {
+          const code_executed = await code_helper.executeBash(context_, block.code);
+          if (code_executed.vars) {
+            context_ = { ...context_, ...code_executed.vars };
+          }
+        }
       }
     }
     // TODO: check param context update safety (not dup context_ param because it may contain functions)
     return context_;
   }
 
-  async executeNode(context_={},code) {
+  async executeNode(context_ = {}, code) {
     const code_helper = new (require('./codeBlocks'));
-    const code_executed = await code_helper.executeNode(context_,code);
+    const code_executed = await code_helper.executeNode(context_, code);
     return code_executed;
   }
 
-  async executeBash(context_={},code) {
+  async executeBash(context_ = {}, code) {
     const code_helper = new (require('./codeBlocks'));
-    const code_executed = await code_helper.executeBash(context_,code);
+    const code_executed = await code_helper.executeBash(context_, code);
     return code_executed;
   }
 
-  async executePython(context_={},code) {
+  async executePython(context_ = {}, code) {
     const code_helper = new (require('./codeBlocks'));
     const context__ = { ...context_, templateDir: this.templateDir };
-    const code_executed = await code_helper.executePython(context__,code);
+    const code_executed = await code_helper.executePython(context__, code);
     return code_executed;
   }
 
-  async spawnBash(context_={},code) {
+  async spawnBash(context_ = {}, code) {
     const code_helper = new (require('./codeBlocks'));
-    const code_executed = await code_helper.spawnBash(context_,code);
+    const code_executed = await code_helper.spawnBash(context_, code);
     return code_executed;
   }
 
-  async runTemplate(prompt='', methods={}, context={}) {
+  async runTemplate(prompt = '', methods = {}, context = {}) {
     const code_helper = new (require('./codeBlocks'));
     const base_methods = {
-      queryLLM:async(question,schema)=>{
-        return await this.queryLLM(question,schema); 
+      queryLLM: async (question, schema) => {
+        return await this.queryLLM(question, schema);
       },
-      queryContext:async(question,schema)=>{
-        return await this.request(question,schema); 
+      queryContext: async (question, schema) => {
+        return await this.request(question, schema);
       },
-      extractCodeBlocks:this.extractCodeBlocks
+      extractCodeBlocks: this.extractCodeBlocks
     };
-    const methods_ = {...base_methods, ...methods, ...{
-      executeScript: async(code)=>{
-        const code_executed = await code_helper.executeNode({...base_methods, ...methods, ...context},code);
-        return code_executed;
+    const methods_ = {
+      ...base_methods, ...methods, ...{
+        executeScript: async (code) => {
+          const code_executed = await code_helper.executeNode({ ...base_methods, ...methods, ...context }, code);
+          return code_executed;
+        }
       }
-    }};
+    };
     //build handlebar template prompt first (to also get initial context vars)
     const context_prompt = await this.generateContextPrompt(null, true, context);
-    let context_ = { ...methods_, ...context_prompt.context};
+    let context_ = { ...methods_, ...context_prompt.context };
     //search x:pre codeblocks and execute
     context_ = await this.executeBlocks(true, context_);
     //execute prompt template if template contains a handlebar besides scripts
     //TODO 22-abr-24
-    if (context_prompt.rendered.trim()!='') {
+    if (context_prompt.rendered.trim() != '') {
       const template_res = await this.request(prompt, null, {
-        custom_variables: {...context_}
+        custom_variables: { ...context_ }
       });
-      context_ = {...context_, ...{
-        schema:template_res.data
-      }};
+      context_ = {
+        ...context_, ...{
+          schema: template_res.data
+        }
+      };
     }
     //search x codeblocks and execute
     context_ = await this.executeBlocks(false, context_);
 
     return context_;
   }
-  
-  async generateContextPrompt(template=null,object=false,variables={}) {
+
+  async generateContextPrompt(template = null, object = false, variables = {}) {
     if (template) {
-        await this.loadAndRegisterTemplate(template);
+      await this.loadAndRegisterTemplate(template);
     }
     // TODO: optimize the following block
-    let variables_ = {...variables}; // clone param
-    let { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);    
+    let variables_ = { ...variables }; // clone param
+    let { absolutePath, sourceTree, filesArray } = await this.traverseDirectory(this.options.path);
     if (Object.keys(variables_).length > 0) {
-      if (!variables_.absolute_code_path) variables_.absolute_code_path=absolutePath;
-      if (!variables_.source_tree) variables_.source_tree=sourceTree;
-      if (!variables_.files) variables_.files=filesArray;
+      if (!variables_.absolute_code_path) variables_.absolute_code_path = absolutePath;
+      if (!variables_.source_tree) variables_.source_tree = sourceTree;
+      if (!variables_.files) variables_.files = filesArray;
     } else {
       variables_ = {
         absolute_code_path: absolutePath,
@@ -379,10 +383,10 @@ Source Tree:
     let rendered = this.template(variables_);
     //console.log(rendered);
     if (object) {
-        return {
-            context: variables_,
-            rendered: rendered
-        };
+      return {
+        context: variables_,
+        rendered: rendered
+      };
     }
     return rendered;
   }
@@ -405,151 +409,219 @@ Source Tree:
     }
   }
 
-  getLLM(content) {
-    //ANTHROPIC_KEY
-    const { OpenAIChatApi,GroqChatApi,AnthropicChatApi } = require('llm-api');
+  getLLM(content, preferences = null) {
+    const { OpenAIChatApi, GroqChatApi, AnthropicChatApi } = require('llm-api');
     const context_tokens = gpt_tokenizer.encode(content).length;
-    // PREFER ANTHROPIC models if available
-    for (const provider of this.modelPreferences) {
+
+    const prefs = preferences || this.modelPreferences;
+
+    for (const provider of prefs) {
       switch (provider) {
         case 'ANTHROPIC':
-          if (this.ANTHROPIC_KEY && context_tokens > 208000) { //deactivate anthropic
+          // Check if we have Anthropic key and conditions match
+          // NOTE: Example condition, adjust as needed
+          if (this.ANTHROPIC_KEY && context_tokens > 208000) {
             this.debug('Using Anthropic model');
-            return new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 20000 }, { model: 'claude-3-opus-20240229', contextSize: 120000 });
+            const llm = new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 20000 }, {
+              model: 'claude-3-opus-20240229',
+              contextSize: 120000
+            });
+            llm.provider = 'ANTHROPIC';
+            return llm;
           }
           break;
         case 'GROQ':
-          if (this.GROQ_KEY && context_tokens < 32000) {
+          if (this.GROQ_KEY && context_tokens < 128000) {
             this.debug('Using GROQ model');
-            if (context_tokens < 8100) {
-              return new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama3-70b-8192', contextSize: 8100 });
+            let llm;
+            if (context_tokens < 64000) {
+              llm = new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama-3.1-8b-instant', contextSize: 128000 });
             } else {
-              return new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'mixtral-8x7b-32768', contextSize: 32000 });
+              llm = new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama-3.3-70b-versatile', contextSize: 128000 });
             }
+            llm.provider = 'GROQ';
+            return llm;
           }
           break;
         case 'OPENAI':
           if (this.OPENAI_KEY && context_tokens < 128000) {
+            let llm;
             if (context_tokens > 64000) {
               this.debug('Using OpenAI model gpt-4o-mini');
-              return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o-mini', contextSize: 128000 });
+              llm = new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o-mini', contextSize: 128000 });
             } else {
               this.debug('Using OpenAI model gpt-4o');
-              return new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o', contextSize: 128000 });
+              llm = new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o', contextSize: 128000 });
             }
+            llm.provider = 'OPENAI';
+            return llm;
           }
           break;
       }
     }
-    this.debug('No preferred model applicable, using default selection logic');
-    return null; // If no preference fits, returns null or handle differently
+    this.debug('No preferred model applicable, returning null');
+    return null; // If no suitable model found
   }
 
-  async queryLLM(prompt='',schema=null) {
-    // query the LLM without context
+  async queryLLM(prompt = '', schema = null) {
+    // query the LLM without context, with fallback to next provider if fails
     try {
       await this.setupFetchPolyfill();
-    } catch(e) {}
+    } catch (e) { }
+
     const { completion } = require('zod-gpt');
-    //if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
-    if (true) {
-        let llm = this.getLLM(prompt);
+
+    let preferences = [...this.modelPreferences]; // Copy of the preference list
+    let lastError;
+
+    while (preferences.length > 0) {
+      const llm = this.getLLM(prompt, preferences);
+      if (!llm) {
+        // No suitable model found among the remaining preferences
+        break;
+      }
+      this.debug(`Chosen LLM provider: ${llm.provider}`);
+
+      try {
         let response = {};
-        let return_ = { data:{}, usage:{} };
+        let return_ = { data: {}, usage: {} };
+
         if (schema) {
-            response = await completion(llm, prompt, { schema: z.object({ schema }) });
+          response = await completion(llm, prompt, { schema: z.object({ schema }) });
         } else {
-            response = await completion(llm, prompt);
+          response = await completion(llm, prompt);
         }
+
         if (response && response.data && response.data.schema) {
-            return_.data = response.data.schema;
-            return_.usage = response.usage;
+          return_.data = response.data.schema;
+          return_.usage = response.usage;
         } else if (response && response.data) {
-            return_.data = response.data;
+          return_.data = response.data;
         }
+
+        // Successfully got a response, return it
         return return_;
+      } catch (err) {
+        lastError = err;
+        this.debug(`LLM provider ${llm.provider} failed with error: ${err.message}`);
+        // Remove the failed provider from the list
+        preferences = preferences.filter(p => p !== llm.provider);
+        this.debug(`Remaining preferences after failure: ${JSON.stringify(preferences)}`);
+      }
     }
+
+    // If we reach this point, either no providers were suitable or all failed
+    throw new Error(`All LLM providers failed. Last error: ${lastError ? lastError.message : 'none'}`);
   }
 
-  async request(prompt='',schema=null,options={
-    custom_context:null,
-    meta:false,
-    custom_variables:{}
+  async request(prompt = '', schema = null, options = {
+    custom_context: null,
+    meta: false,
+    custom_variables: {}
   }) {
     await this.setupFetchPolyfill();
     const { completion } = require('zod-gpt');
+
     if (schema) {
-        this.schema = z.object({ schema });
+      this.schema = z.object({ schema });
     }
-    // calls the LLM with the context and enforced schema, with optional instruction prompt
-    let context_ = null;
-    let context = options.custom_context;
+
+    // Prepare context
+    let context_;
+    let context;
     if (!options.custom_context) {
-        context_ = await this.generateContextPrompt(null,true,options.custom_variables);
-        context = context_.rendered;
+      context_ = await this.generateContextPrompt(null, true, options.custom_variables);
+      context = context_.rendered;
     } else {
-        context_ = { context:options.custom_context, rendered:'' };
-        context = '';
+      context_ = { context: options.custom_context, rendered: '' };
+      context = '';
     }
-    //if ((this.OPENAI_KEY && this.OPENAI_KEY!='') || (this.GROQ_KEY && this.GROQ_KEY!='')) {
-    if (true) {
-        const llm = this.getLLM(context);
+
+    let fullPrompt = prompt ? (context + '\n\n# ' + prompt) : context;
+
+    let preferences = [...this.modelPreferences]; // Copy of the preference list
+    let lastError;
+
+    while (preferences.length > 0) {
+      const llm = this.getLLM(fullPrompt, preferences);
+      if (!llm) {
+        // No suitable model found among the remaining preferences
+        break;
+      }
+
+      this.debug(`Chosen LLM provider: ${llm.provider} for request()`);
+
+      try {
         let response = {};
-        let return_ = { data:{}, usage:{} };
-        if (prompt) {
-            response = await completion(llm, context + '\n\n# ' + prompt, { schema: this.schema });
+        let return_ = { data: {}, usage: {} };
+
+        if (this.schema) {
+          response = await completion(llm, fullPrompt, { schema: this.schema });
         } else {
-            response = await completion(llm, context, { schema: this.schema });
+          response = await completion(llm, fullPrompt);
         }
+
         if (response && response.data && response.data.schema) {
-            return_.data = response.data.schema;
-            return_.usage = response.usage;
+          return_.data = response.data.schema;
+          return_.usage = response.usage;
         } else if (response && response.data) {
-            return_.data = response.data;
+          return_.data = response.data;
         }
+
         if (options.meta) {
-            return_.context = context_.context;
-            return_.code_blocks = this.code_blocks;
+          return_.context = context_.context;
+          return_.code_blocks = this.code_blocks;
         }
-        // add to this.QArecordings[this.last_QAsession]
+
+        // add to this.QArecordings[this.last_QAsession] if exists
         if (this.last_QAsession) {
           this.QArecordings[this.last_QAsession] = {
-            question:prompt,
-            answer:return_.data
-          }
+            question: prompt,
+            answer: return_.data
+          };
         }
+
+        // Successfully got a response, return it
         return return_;
+      } catch (err) {
+        lastError = err;
+        this.debug(`LLM provider ${llm.provider} failed with error: ${err.message}`);
+        // Remove the failed provider from the list
+        preferences = preferences.filter(p => p !== llm.provider);
+        this.debug(`Remaining preferences after failure: ${JSON.stringify(preferences)}`);
+      }
     }
-    //
-    console.log('No LLM key specified, returning empty response')
-    return null;
+
+    // If we reach this point, either no providers were suitable or all failed
+    throw new Error(`All LLM providers failed. Last error: ${lastError ? lastError.message : 'none'}`);
   }
+
 
   createZodSchema(input) {
     if (Array.isArray(input)) {
-        // Handle arrays; assumes first element structure for all elements
-        if (input.length === 0) {
-            return z.array(z.unknown());
-        } else {
-            // TODO add support for string values as z.enum 
-            return z.array(this.createZodSchema(input[0]));
-        }
+      // Handle arrays; assumes first element structure for all elements
+      if (input.length === 0) {
+        return z.array(z.unknown());
+      } else {
+        // TODO add support for string values as z.enum 
+        return z.array(this.createZodSchema(input[0]));
+      }
     } else if (typeof input === 'object' && input !== null) {
-        // Handle objects
-        const schemaFields = Object.keys(input).reduce((acc, key) => {
-            // Use the value as description for nested fields if it's a string
-            const fieldValue = input[key];
-            acc[key] = typeof fieldValue === 'string' ? this.createZodSchema(fieldValue, key) : createZodSchema(fieldValue);
-            return acc;
-        }, {});
-        return z.object(schemaFields);
+      // Handle objects
+      const schemaFields = Object.keys(input).reduce((acc, key) => {
+        // Use the value as description for nested fields if it's a string
+        const fieldValue = input[key];
+        acc[key] = typeof fieldValue === 'string' ? this.createZodSchema(fieldValue, key) : createZodSchema(fieldValue);
+        return acc;
+      }, {});
+      return z.object(schemaFields);
     } else if (typeof input === 'string') {
-        // Use the string value as the description
-        return z.string().describe(input);
+      // Use the string value as the description
+      return z.string().describe(input);
     } else {
-        // For all other types, default to using z.string() without description
-        // Adjust this part as necessary to handle more types explicitly
-        return z.string();
+      // For all other types, default to using z.string() without description
+      // Adjust this part as necessary to handle more types explicitly
+      return z.string();
     }
   }
 }
