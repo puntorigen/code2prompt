@@ -9,6 +9,7 @@ Generate LLM prompts from your codebase easily with `code2prompt`, a Node.js pac
 - Automatically ignore specified directories or files using glob patterns.
 - Generate structured data including a source tree and file contents.
 - Utilize Handlebars templates for flexible output formatting.
+- Supports calls to OpenAI, Anthropic and Groq APIs for calling LLMs.
 
 ## Installation
 
@@ -36,12 +37,15 @@ const Code2Prompt = require('code2prompt');
         //template: 'templates/default.hbs',
         template: 'templates/write-readme.hbs',
         ignore: ["**/node_modules/**"], // Specify patterns to ignore
-        OPENAI_KEY: 'YOUR_OPENAI API KEY' // needed for calling 'request', if not it's optional
+        OPENAI_KEY: 'YOUR_OPENAI API KEY', // (optional) needed for 'request'
+        ANTHROPIC_KEY: 'YOUR_ANTHROPIC API KEY', // (optional) needed for 'request'
+        GROQ_KEY: 'YOUR_GROQ API KEY', // (optional) needed for 'request'
     };
     const code2Prompt = new Code2Prompt(options);
     const prompt = await code2Prompt.generateContextPrompt();
     console.log(prompt);
-    // make request to openAI
+    // make request to LLM API
+    setModelPreferences(["OPENAI", "ANTHROPIC", "GROQ"]); // define priority order for requests
     const generateReadme = await code2Prompt.request("Generate a readme file from the given codebase",z.object({
         readme: z.string().describe('The generated contents of the readme file'),
     }));
