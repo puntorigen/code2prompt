@@ -422,9 +422,9 @@ Source Tree:
           // NOTE: Example condition, adjust as needed
           if (this.ANTHROPIC_KEY && context_tokens > 208000) {
             this.debug('Using Anthropic model');
-            const llm = new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 20000 }, {
-              model: 'claude-3-opus-20240229',
-              contextSize: 120000
+            const llm = new AnthropicChatApi({ apiKey: this.ANTHROPIC_KEY, timeout: 40000 }, {
+              model: 'claude-3-5-haiku-20241022', // fastest 0.8 usd per 1mn tokens
+              contextSize: 200000
             });
             llm.provider = 'ANTHROPIC';
             return llm;
@@ -433,26 +433,20 @@ Source Tree:
         case 'GROQ':
           if (this.GROQ_KEY && context_tokens < 128000) {
             this.debug('Using GROQ model');
-            let llm;
-            if (context_tokens < 64000) {
+            let llm = new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama-3.3-70b-versatile', contextSize: 128000 });
+            /*if (context_tokens < 64000) {
               llm = new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama-3.1-8b-instant', contextSize: 128000 });
             } else {
               llm = new GroqChatApi({ apiKey: this.GROQ_KEY, timeout: 20000 }, { model: 'llama-3.3-70b-versatile', contextSize: 128000 });
-            }
+            }*/
             llm.provider = 'GROQ';
             return llm;
           }
           break;
         case 'OPENAI':
           if (this.OPENAI_KEY && context_tokens < 128000) {
-            let llm;
-            if (context_tokens > 64000) {
-              this.debug('Using OpenAI model gpt-4o-mini');
-              llm = new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o-mini', contextSize: 128000 });
-            } else {
-              this.debug('Using OpenAI model gpt-4o');
-              llm = new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o', contextSize: 128000 });
-            }
+            this.debug('Using OpenAI model gpt-4o');
+            let llm = new OpenAIChatApi({ apiKey: this.OPENAI_KEY, timeout: 20000 }, { model: 'gpt-4o', contextSize: 128000 });
             llm.provider = 'OPENAI';
             return llm;
           }
