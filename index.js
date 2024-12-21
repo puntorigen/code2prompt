@@ -173,7 +173,7 @@ Source Tree:
   async traverseDirectory(dirPath, maxBytes = this.maxBytesPerFile) {
     const absolutePath = path.resolve(dirPath);
     const ignorePatternsWithoutViewers = this.adjustIgnorePatterns(this.ignorePatterns, Object.keys(this.custom_viewers));
-    const files = await glob("**", { cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers });
+    const files = await glob("**", { cwd: absolutePath, nodir: true, absolute: true, ignore: ignorePatternsWithoutViewers, dot: true });
     let tree = {};
     let filesArray = [];
 
